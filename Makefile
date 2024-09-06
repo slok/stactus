@@ -13,6 +13,7 @@ CHECK_CMD := ./scripts/check/check.sh
 DEV_IMAGE_NAME := localdev/stactus
 PROD_IMAGE_NAME ?=   ghcr.io/slok/stactus
 
+DOCKER_RUN_CMD := docker run --env ostype=$(OSTYPE) -v ${PWD}:/src --rm ${DEV_IMAGE_NAME}
 BUILD_BINARY_CMD := VERSION=${VERSION} ./scripts/build/bin/build.sh
 BUILD_BINARY_ALL_CMD := VERSION=${VERSION} ./scripts/build/bin/build-all.sh
 BUILD_DEV_IMAGE_CMD := IMAGE=${DEV_IMAGE_NAME} DOCKER_FILE_PATH=./docker/dev/Dockerfile VERSION=latest ./scripts/build/docker/build-image-dev.sh

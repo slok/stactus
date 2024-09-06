@@ -24,6 +24,7 @@ require (
 	github.com/prometheus/common v0.59.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
