@@ -25,12 +25,12 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	rootCmd := commands.NewRootCommand(app)
 
 	// Setup commands (registers flags).
-	serverCmd := commands.NewServerCommand(rootCmd, app)
+	generateCmd := commands.NewGeneretaCommand(rootCmd, app)
 	versionCmd := commands.NewVersionCommand(rootCmd, app)
 
 	cmds := map[string]commands.Command{
-		serverCmd.Name():  serverCmd,
-		versionCmd.Name(): versionCmd,
+		generateCmd.Name(): generateCmd,
+		versionCmd.Name():  versionCmd,
 	}
 
 	// Parse commandline.
