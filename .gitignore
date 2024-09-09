@@ -26,3 +26,6 @@ vendor/
 
 # Dev helper dirs
 test/manual/_dev/
+
+# Output files.
+/out
