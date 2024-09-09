@@ -12,6 +12,7 @@ import (
 
 type ServiceConfig struct {
 	SystemGetter storage.SystemGetter
+	IRGetter     storage.IncidentReportGetter
 	UICreator    storage.UICreator
 
 	Logger log.Logger
@@ -20,6 +21,10 @@ type ServiceConfig struct {
 func (c *ServiceConfig) defaults() error {
 	if c.SystemGetter == nil {
 		return fmt.Errorf("system getter is required")
+	}
+
+	if c.IRGetter == nil {
+		return fmt.Errorf("IR getter is required")
 	}
 
 	if c.UICreator == nil {
@@ -37,6 +42,7 @@ func (c *ServiceConfig) defaults() error {
 
 type Service struct {
 	sysGetter storage.SystemGetter
+	irGetter  storage.IncidentReportGetter
 	uiCreator storage.UICreator
 	logger    log.Logger
 }
@@ -49,6 +55,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	return &Service{
 		sysGetter: config.SystemGetter,
+		irGetter:  config.IRGetter,
 		uiCreator: config.UICreator,
 		logger:    config.Logger,
 	}, nil
@@ -77,14 +84,47 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 		return GenerateResp{}, fmt.Errorf("could not list systems: %w", err)
 	}
 
-	// Generate.
-	ui := model.UI{}
+	// Get all IRs.
+	irs, err := s.irGetter.ListAllIncidentReports(ctx)
+	if err != nil {
+		return GenerateResp{}, fmt.Errorf("could not list IRs: %w", err)
+	}
+
+	// Prepare data.
+	history := []*model.IncidentReport{}
+	for _, ir := range irs {
+		history = append(history, &ir)
+	}
+
+	irsBySystem := map[string][]*model.IncidentReport{}
+	for _, ir := range history {
+		irsBySystem[ir.SystemID] = append(irsBySystem[ir.SystemID], ir)
+	}
+
+	var latestUpdate *model.IncidentReportDetail
+	if len(history) > 0 && len(history[0].Details) > 0 {
+		latestUpdate = &history[0].Details[0]
+	}
+
+	systemDetails := []model.SystemDetails{}
 	for _, s := range systems {
-		ui.SystemDetails = append(ui.SystemDetails, model.SystemDetails{
-			System: s,
+		var latestIR *model.IncidentReport
+		if len(irsBySystem[s.ID]) > 0 {
+			latestIR = irsBySystem[s.ID][0]
+		}
+		systemDetails = append(systemDetails, model.SystemDetails{
+			System:   s,
+			LatestIR: latestIR,
+			IRs:      irsBySystem[s.ID],
 		})
 	}
 
+	// Generate.
+	ui := model.UI{
+		SystemDetails: systemDetails,
+		History:       history,
+		LatestUpdate:  latestUpdate,
+	}
 	err = s.uiCreator.CreateUI(ctx, ui)
 	if err != nil {
 		return GenerateResp{}, fmt.Errorf("could not generate UI: %w", err)
