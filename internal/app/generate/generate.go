@@ -101,8 +101,9 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 		irsBySystem[ir.SystemID] = append(irsBySystem[ir.SystemID], ir)
 	}
 
+	// Add latest update if the incident is ongoing
 	var latestUpdate *model.IncidentReportDetail
-	if len(history) > 0 && len(history[0].Details) > 0 {
+	if len(history) > 0 && history[0].End.IsZero() && len(history[0].Details) > 0 {
 		latestUpdate = &history[0].Details[0]
 	}
 

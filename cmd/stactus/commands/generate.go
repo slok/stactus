@@ -8,10 +8,9 @@ import (
 	"github.com/oklog/run"
 
 	appgenerate "github.com/slok/stactus/internal/app/generate"
-	"github.com/slok/stactus/internal/model"
+	"github.com/slok/stactus/internal/dev"
 	"github.com/slok/stactus/internal/storage"
-	htmlgh "github.com/slok/stactus/internal/storage/html/themes/gh"
-	storagememory "github.com/slok/stactus/internal/storage/memory"
+	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 )
 
 type GeneretaCommand struct {
@@ -20,6 +19,7 @@ type GeneretaCommand struct {
 
 	outPath       string
 	appConfigPath string
+	devFixtures   bool
 }
 
 // NewGeneretaCommand returns a generator with the github status page theme.
@@ -32,6 +32,7 @@ func NewGeneretaCommand(rootConfig *RootCommand, app *kingpin.Application) *Gene
 
 	cmd.Flag("out", "The directory where all the generated files will be written.").Default("./out").StringVar(&c.outPath)
 	cmd.Flag("configuration", "The app configuration file path.").Default("./stactus.yaml").StringVar(&c.appConfigPath)
+	cmd.Flag("dev-fixtures", "If enabled it will load development fixtures.").BoolVar(&c.devFixtures)
 
 	return c
 }
@@ -46,25 +47,32 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 	// Setup repository.
 	repo := unifiedRepository{}
 
-	repo.UICreator, err = htmlgh.NewGenerator(htmlgh.GeneratorConfig{
-		OutPath: c.outPath,
-		Logger:  logger,
-		ThemeCustomization: htmlgh.ThemeCustomization{
-			BrandTitle:     "Github",
-			BrandURL:       "https://github.com",
-			BannerImageURL: "https://user-images.githubusercontent.com/19292210/60553863-044dd200-9cea-11e9-987e-7db84449f215.png",
-			LogoURL:        "https://raw.githubusercontent.com/gilbarbara/logos/main/logos/github-icon.svg",
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("could not create html generator: %w", err)
+	// TODO(slok): Select theme.
+	theme := "simple"
+	switch theme {
+	case "simple":
+		repo.UICreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
+			OutPath: c.outPath,
+			Logger:  logger,
+			ThemeCustomization: htmlsimple.ThemeCustomization{
+				BrandTitle: "Github",
+				BrandURL:   "https://github.com",
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("could not create html generator: %w", err)
+		}
+	default:
+		return fmt.Errorf("unknown theme")
 	}
 
-	repo.SystemGetter = storagememory.NewRepository([]model.System{
-		{ID: "test-1", Name: "Test 1", Description: "System 1 is the Test 1 system"},
-		{ID: "test-2", Name: "Test 2", Description: "System 2 is the Test 1 system"},
-		{ID: "test-3", Name: "Test 3", Description: "System 3 is the Test 1 system"},
-	}, []model.IncidentReport{})
+	if c.devFixtures {
+		devRepo := dev.NewDevelopmentRepository()
+		repo.SystemGetter = devRepo
+		repo.IncidentReportGetter = devRepo
+	} else {
+		return fmt.Errorf("in development, for now only allow using with dev fixtures")
+	}
 
 	// Prepare run entrypoints.
 	var g run.Group
@@ -87,6 +95,7 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 	{
 		genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
 			SystemGetter: repo,
+			IRGetter:     repo,
 			UICreator:    repo,
 			Logger:       logger,
 		})
