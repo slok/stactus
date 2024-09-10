@@ -44,6 +44,9 @@ func (r Repository) ListAllSystems(ctx context.Context) ([]model.System, error) 
 func (r Repository) ListAllIncidentReports(ctx context.Context) ([]model.IncidentReport, error) {
 	irs := []model.IncidentReport{}
 	for _, ir := range r.incidentReportsByID {
+		// Sort ir details by last updated.
+		sort.SliceStable(ir.Details, func(i, j int) bool { return ir.Details[i].TS.After(ir.Details[j].TS) })
+
 		irs = append(irs, ir)
 	}
 
