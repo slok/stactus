@@ -17,9 +17,9 @@ type GeneretaCommand struct {
 	cmd        *kingpin.CmdClause
 	rootConfig *RootCommand
 
-	outPath       string
-	appConfigPath string
-	devFixtures   bool
+	outPath     string
+	siteURL     string
+	devFixtures bool
 }
 
 // NewGeneretaCommand returns a generator with the github status page theme.
@@ -31,7 +31,7 @@ func NewGeneretaCommand(rootConfig *RootCommand, app *kingpin.Application) *Gene
 	}
 
 	cmd.Flag("out", "The directory where all the generated files will be written.").Default("./out").StringVar(&c.outPath)
-	cmd.Flag("configuration", "The app configuration file path.").Default("./stactus.yaml").StringVar(&c.appConfigPath)
+	cmd.Flag("site-url", "The site base url.").Default("").StringVar(&c.siteURL)
 	cmd.Flag("dev-fixtures", "If enabled it will load development fixtures.").BoolVar(&c.devFixtures)
 
 	return c
@@ -53,6 +53,7 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 	case "simple":
 		repo.UICreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
 			OutPath: c.outPath,
+			SiteURL: c.siteURL,
 			Logger:  logger,
 			ThemeCustomization: htmlsimple.ThemeCustomization{
 				BrandTitle: "Github",

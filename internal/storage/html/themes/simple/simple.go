@@ -29,12 +29,14 @@ type Generator struct {
 	fileManager        util.FileManager
 	renderer           util.ThemeRenderer
 	outPath            string
+	siteURL            string
 	themeCustomization ThemeCustomization
 }
 
 type GeneratorConfig struct {
 	FileManager        util.FileManager
 	OutPath            string
+	SiteURL            string
 	Logger             log.Logger
 	ThemeCustomization ThemeCustomization
 }
@@ -74,6 +76,11 @@ func (c *GeneratorConfig) defaults() error {
 	c.OutPath = strings.TrimSuffix(c.OutPath, "/")
 	c.OutPath = c.OutPath + "/"
 
+	// Ensure correct out path.
+	c.SiteURL = strings.TrimSpace(c.SiteURL)
+	c.SiteURL = strings.TrimSuffix(c.SiteURL, "/")
+	c.SiteURL = c.SiteURL + "/"
+
 	if c.Logger == nil {
 		c.Logger = log.Noop
 	}
@@ -97,6 +104,7 @@ func NewGenerator(config GeneratorConfig) (*Generator, error) {
 		fileManager:        config.FileManager,
 		renderer:           *renderer,
 		outPath:            config.OutPath,
+		siteURL:            config.SiteURL,
 		themeCustomization: config.ThemeCustomization,
 	}, nil
 }
@@ -151,6 +159,7 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI) error {
 	}
 
 	type tplData struct {
+		CSSURL     string
 		BrandTitle string
 		BrandURL   string
 		HasUpdate  bool
@@ -160,9 +169,10 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI) error {
 	}
 
 	data := tplData{
+		CSSURL:     g.urlCSS(false),
 		BrandTitle: g.themeCustomization.BrandTitle,
 		BrandURL:   g.themeCustomization.BrandURL,
-		HistoryURL: urlHistory(0, false),
+		HistoryURL: g.urlHistory(0, false),
 	}
 
 	if ui.LatestUpdate != nil {
@@ -188,7 +198,7 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI) error {
 		return fmt.Errorf("could not render index: %w", err)
 	}
 
-	err = g.fileManager.WriteFile(ctx, g.outPath+urlIndex(true), []byte(index))
+	err = g.fileManager.WriteFile(ctx, g.outPath+g.urlIndex(true), []byte(index))
 	if err != nil {
 		return fmt.Errorf("could not write index: %w", err)
 	}
@@ -208,6 +218,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 	}
 
 	type tplData struct {
+		CSSURL      string
 		BrandTitle  string
 		BrandURL    string
 		NextURL     string
@@ -227,8 +238,8 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 
 	// Render a history per page.
 	for i, page := range pageIncidents {
-		nextURL := urlHistory(i-1, false)
-		previousURL := urlHistory(i+1, false)
+		nextURL := g.urlHistory(i-1, false)
+		previousURL := g.urlHistory(i+1, false)
 
 		// Special page cases (first, last).
 		switch {
@@ -251,7 +262,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 
 			incidents = append(incidents, incidentTplData{
 				Title:        ir.Name,
-				URL:          urlIRDetail(ir.ID, false),
+				URL:          g.urlIRDetail(ir.ID, false),
 				LatestUpdate: latestUpdate,
 				StartTS:      historyTS(ir.Start),
 				EndTS:        endTS,
@@ -260,6 +271,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 		}
 
 		data := tplData{
+			CSSURL:      g.urlCSS(false),
 			BrandTitle:  g.themeCustomization.BrandTitle,
 			BrandURL:    g.themeCustomization.BrandURL,
 			NextURL:     nextURL,
@@ -273,7 +285,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 			return fmt.Errorf("could not render index: %w", err)
 		}
 
-		err = g.fileManager.WriteFile(ctx, g.outPath+urlHistory(i, true), []byte(index))
+		err = g.fileManager.WriteFile(ctx, g.outPath+g.urlHistory(i, true), []byte(index))
 		if err != nil {
 			return fmt.Errorf("could not write index: %w", err)
 		}
@@ -291,6 +303,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 	}
 
 	type tplData struct {
+		CSSURL     string
 		BrandTitle string
 		Title      string
 		ID         string
@@ -321,6 +334,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 		}
 
 		data := tplData{
+			CSSURL:     g.urlCSS(false),
 			BrandTitle: g.themeCustomization.BrandTitle,
 			Title:      ir.Name,
 			ID:         ir.ID,
@@ -329,7 +343,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 			EndTS:      endTS,
 			Duration:   duration,
 			Timeline:   timeline,
-			IndexURL:   urlIndex(false),
+			IndexURL:   g.urlIndex(false),
 		}
 
 		// Render history first page.
@@ -338,7 +352,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 			return fmt.Errorf("could not render index: %w", err)
 		}
 
-		err = g.fileManager.WriteFile(ctx, g.outPath+urlIRDetail(ir.ID, true), []byte(index))
+		err = g.fileManager.WriteFile(ctx, g.outPath+g.urlIRDetail(ir.ID, true), []byte(index))
 		if err != nil {
 			return fmt.Errorf("could not write index: %w", err)
 		}
@@ -347,31 +361,40 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 	return nil
 }
 
-func urlHistory(page int, fileName bool) string {
+func (g Generator) urlCSS(fileName bool) string {
+	u := "static/main.css"
+	if fileName {
+		return u + u
+	}
+
+	return g.siteURL + u
+}
+
+func (g Generator) urlHistory(page int, fileName bool) string {
 	u := fmt.Sprintf("history/%d", page)
 	if fileName {
 		return u + ".html"
 	}
 
-	return "/" + u
+	return g.siteURL + u
 }
 
-func urlIndex(fileName bool) string {
+func (g Generator) urlIndex(fileName bool) string {
 	const url = "index"
 	if fileName {
 		return url + ".html"
 	}
 
-	return "/" + url
+	return g.siteURL + url
 }
 
-func urlIRDetail(irID string, fileName bool) string {
+func (g Generator) urlIRDetail(irID string, fileName bool) string {
 	u := fmt.Sprintf("ir/%s", irID)
 	if fileName {
 		return u + ".html"
 	}
 
-	return "/" + u
+	return g.siteURL + u
 }
 
 func historyTS(t time.Time) string {
