@@ -9,14 +9,20 @@
         <h1> <a href="{{.BrandURL}}">{{.BrandTitle}}</a> status</h1>
         <!-- Status -->
         <section>
-            {{ if .HasUpdate}}
-                <div class="box critical">
-                    {{ .UpdateText }}
-                </div>
-            {{ else }}
+            {{ if .AllOK}}
                 <div class="box ok">
                     <strong>All systems ok</strong>
                 </div>
+            {{ else }}
+                <h2>Ongoing incidents</h2>
+                {{ range .OngoingIRs }}
+                    <div class="box impact-{{.Impact}}">
+                        <h3><a href="{{ .URL }}"> {{ .Name }}</a></h3>
+                        <div>{{ .LatestUpdate }}</div>
+                        <br>
+                        <small>Latest update at {{ .TS }}</small>
+                    </div>
+                {{ end }}
             {{ end }}
         </section>
         

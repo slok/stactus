@@ -84,8 +84,27 @@ func TestCreateUI(t *testing.T) {
 			ui: model.UI{
 				OpenedIRs: []*model.IncidentReport{
 					{
+						ID:        "ir42",
+						Name:      "Oh snap!",
+						SystemIDs: []string{"test1"},
+						Start:     t0,
+						Impact:    model.IncidentImpactCritical,
 						Timeline: []model.IncidentReportEvent{
-							{Description: "There is a problem"},
+							{Description: "There is a problem 3", TS: t0.Add(33 * time.Minute)},
+							{Description: "There is a problem 2", TS: t0.Add(22 * time.Minute)},
+							{Description: "There is a problem 1", TS: t0.Add(11 * time.Minute)},
+						},
+					},
+
+					{
+						ID:        "ir99",
+						Name:      "fuuuuuuuuuuu",
+						SystemIDs: []string{"test2"},
+						Start:     t0,
+						Impact:    model.IncidentImpactMajor,
+						Timeline: []model.IncidentReportEvent{
+							{Description: "something something 9", TS: t0.Add(199 * time.Minute)},
+							{Description: "something something 6", TS: t0.Add(87 * time.Minute)},
 						},
 					},
 				},
@@ -104,7 +123,19 @@ func TestCreateUI(t *testing.T) {
 			},
 			expectHTML: map[string][]string{
 				"./index.html": {
-					`There is a problem`, // We have the message that some system is not ok.
+					// Ongoing incident 1 info.
+					`<div class="box impact-critical">`,
+					`<h3><a href="/ir/ir42"> Oh snap!</a></h3>`,
+					`<div><p>There is a problem 3</p> </div>`,
+					`<small>Latest update at Jun 23, 01:35</small>`,
+
+					// Ongoing incident 2 info.
+					`<div class="box impact-major">`,
+					`<h3><a href="/ir/ir99"> fuuuuuuuuuuu</a></h3>`,
+					`<div><p>something something 9</p> </div>`,
+					`<small>Latest update at Jun 23, 04:21</small>`,
+
+					// Systems status.
 					`title="Something test 1"> <strong>Test 1</strong> OK`,       // We have system 1 status.
 					`title="Something test 2"> <strong>Test 2</strong> OK`,       // We have system 2 status.
 					`title="Something test 3"> <strong>Test 3</strong> Degraded`, // We have system 3 status.
@@ -168,13 +199,13 @@ func TestCreateUI(t *testing.T) {
 					// Incident 1.
 					`<div class="box impact-major">`,
 					`<h2><a href="/ir/ir-1">Incident report 1</a></h2>`,
-					`<p> Some detail 11 </p>`,
+					`<p> <p>Some detail 11</p></p>`,
 					`Jun 23, 01:02 - Jun 23, 03:02`,
 
 					// Incident 2.
 					`<div class="box impact-critical">`,
 					`<h2><a href="/ir/ir-2">Incident report 2</a></h2>`,
-					`<p> Some detail 12 </p>`,
+					`<p> <p>Some detail 12</p></p>`,
 					`Jun 23, 11:02 - Jun 23, 16:02`,
 
 					// Pagination.
@@ -187,7 +218,7 @@ func TestCreateUI(t *testing.T) {
 					// Incident 3.
 					`<div class="box impact-minor">`,
 					`<h2><a href="/ir/ir-3">Incident report 3</a></h2>`,
-					`<p> Some detail 13 </p>`,
+					`<p> <p>Some detail 13</p></p>`,
 					`Jun 23, 21:02 - Jun 24, 02:02`,
 
 					// Pagination.
@@ -244,9 +275,9 @@ func TestCreateUI(t *testing.T) {
 
 					// Timeline.
 					`<h2> Timeline </h2>`,
-					`<h3> Resolved - Jun 23, 01:07 </h3> <p> Some detail 13 </p>`,
-					`<h3> Update - Jun 23, 01:05 </h3> <p> Some detail 12 </p>`,
-					`<h3> Investigating - Jun 23, 01:04 </h3> <p> Some detail 13 </p>`,
+					`<h3> Resolved - Jun 23, 01:07 </h3> <p> <p>Some detail 13</p> </p>`,
+					`<h3> Update - Jun 23, 01:05 </h3> <p> <p>Some detail 12</p> </p>`,
+					`<h3> Investigating - Jun 23, 01:04 </h3> <p> <p>Some detail 13</p> </p>`,
 				},
 
 				"./ir/0987654321.html": {
@@ -262,7 +293,7 @@ func TestCreateUI(t *testing.T) {
 
 					// Timeline.
 					`<h2> Timeline </h2>`,
-					`<h3> Investigating - Jun 23, 01:17 </h3> <p> Some detail 23 </p> `,
+					`<h3> Investigating - Jun 23, 01:17 </h3> <p> <p>Some detail 23</p> </p> `,
 				},
 			},
 		},

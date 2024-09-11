@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
@@ -158,26 +161,40 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI) error {
 		OK          bool
 	}
 
+	type ongoingIRsTplData struct {
+		Name         string
+		URL          string
+		LatestUpdate string
+		TS           string
+		Impact       string
+	}
+
 	type tplData struct {
 		CSSURL     string
+		AllOK      bool
+		OngoingIRs []ongoingIRsTplData
 		BrandTitle string
 		BrandURL   string
-		HasUpdate  bool
-		UpdateText string
 		HistoryURL string
 		Systems    []System
 	}
 
 	data := tplData{
 		CSSURL:     g.urlCSS(false),
+		AllOK:      len(ui.OpenedIRs) == 0,
 		BrandTitle: g.themeCustomization.BrandTitle,
 		BrandURL:   g.themeCustomization.BrandURL,
 		HistoryURL: g.urlHistory(0, false),
 	}
 
-	if len(ui.OpenedIRs) > 0 {
-		data.HasUpdate = true
-		data.UpdateText = ui.OpenedIRs[0].Timeline[0].Description
+	for _, ir := range ui.OpenedIRs {
+		data.OngoingIRs = append(data.OngoingIRs, ongoingIRsTplData{
+			Name:         ir.Name,
+			URL:          g.urlIRDetail(ir.ID, false),
+			LatestUpdate: renderMarkdown(ir.Timeline[0].Description),
+			TS:           historyTS(ir.Timeline[0].TS),
+			Impact:       string(ir.Impact),
+		})
 	}
 
 	for _, s := range ui.SystemDetails {
@@ -253,7 +270,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 		for _, ir := range page {
 			latestUpdate := ""
 			if len(ir.Timeline) > 0 {
-				latestUpdate = ir.Timeline[0].Description
+				latestUpdate = renderMarkdown(ir.Timeline[0].Description)
 			}
 			endTS := ""
 			if !ir.End.IsZero() {
@@ -329,7 +346,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 			timeline = append(timeline, timelineTplData{
 				Kind:   strTitle(string(d.Kind)),
 				TS:     historyTS(d.TS),
-				Detail: d.Description,
+				Detail: renderMarkdown(d.Description),
 			})
 		}
 
@@ -405,4 +422,17 @@ var enCaser = cases.Title(language.English)
 
 func strTitle(s string) string {
 	return enCaser.String(s)
+}
+
+func renderMarkdown(md string) string {
+	// create markdown parser with extensions
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse([]byte(md))
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	renderer := html.NewRenderer(html.RendererOptions{Flags: htmlFlags})
+
+	return string(markdown.Render(doc, renderer))
 }
