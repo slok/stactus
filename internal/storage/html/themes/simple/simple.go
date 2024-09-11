@@ -175,9 +175,9 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI) error {
 		HistoryURL: g.urlHistory(0, false),
 	}
 
-	if ui.LatestUpdate != nil {
+	if len(ui.OpenedIRs) > 0 {
 		data.HasUpdate = true
-		data.UpdateText = ui.LatestUpdate.Description
+		data.UpdateText = ui.OpenedIRs[0].Timeline[0].Description
 	}
 
 	for _, s := range ui.SystemDetails {

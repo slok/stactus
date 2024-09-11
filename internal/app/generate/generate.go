@@ -96,17 +96,16 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 		history = append(history, &ir)
 	}
 
+	openedIRs := []*model.IncidentReport{}
 	irsBySystem := map[string][]*model.IncidentReport{}
 	for _, ir := range history {
 		for _, id := range ir.SystemIDs {
 			irsBySystem[id] = append(irsBySystem[id], ir)
 		}
-	}
 
-	// Add latest update if the incident is ongoing
-	var latestUpdate *model.IncidentReportEvent
-	if len(history) > 0 && history[0].End.IsZero() && len(history[0].Timeline) > 0 {
-		latestUpdate = &history[0].Timeline[0]
+		if ir.End.IsZero() {
+			openedIRs = append(openedIRs, ir)
+		}
 	}
 
 	systemDetails := []model.SystemDetails{}
@@ -126,7 +125,7 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 	ui := model.UI{
 		SystemDetails: systemDetails,
 		History:       history,
-		LatestUpdate:  latestUpdate,
+		OpenedIRs:     openedIRs,
 	}
 	err = s.uiCreator.CreateUI(ctx, ui)
 	if err != nil {
