@@ -13,13 +13,13 @@ const (
 )
 
 type IncidentReport struct {
-	ID       string
-	Name     string
-	SystemID string
-	Start    time.Time
-	End      time.Time
-	Impact   IncidentImpact
-	Timeline []IncidentReportEvent
+	ID        string
+	Name      string
+	SystemIDs []string
+	Start     time.Time
+	End       time.Time
+	Impact    IncidentImpact
+	Timeline  []IncidentReportEvent
 }
 
 type IncidentUpdateKind string

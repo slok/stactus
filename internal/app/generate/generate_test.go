@@ -96,27 +96,27 @@ func TestGenerate(t *testing.T) {
 
 				mig.On("ListAllIncidentReports", mock.Anything).Return([]model.IncidentReport{
 					{
-						ID:       "ir1",
-						SystemID: "test2",
-						Name:     "IR 1",
-						Start:    t0,
+						ID:        "ir1",
+						SystemIDs: []string{"test2"},
+						Name:      "IR 1",
+						Start:     t0,
 						Timeline: []model.IncidentReportEvent{
 							{Description: "desc1"},
 						},
 					},
 					{
-						ID:       "ir3",
-						SystemID: "test3",
-						Name:     "IR 3",
-						Start:    t0.Add(-3 * time.Hour),
-						End:      t0.Add(-2 * time.Hour),
+						ID:        "ir3",
+						SystemIDs: []string{"test3"},
+						Name:      "IR 3",
+						Start:     t0.Add(-3 * time.Hour),
+						End:       t0.Add(-2 * time.Hour),
 					},
 					{
-						ID:       "ir2",
-						SystemID: "test2",
-						Name:     "IR 2",
-						Start:    t0.Add(-5 * time.Hour),
-						End:      t0.Add(-4 * time.Hour),
+						ID:        "ir2",
+						SystemIDs: []string{"test2", "test3"},
+						Name:      "IR 2",
+						Start:     t0.Add(-5 * time.Hour),
+						End:       t0.Add(-4 * time.Hour),
 					},
 				}, nil)
 
@@ -125,9 +125,9 @@ func TestGenerate(t *testing.T) {
 						Description: "desc1",
 					},
 					History: []*model.IncidentReport{
-						{ID: "ir1", SystemID: "test2", Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
-						{ID: "ir3", SystemID: "test3", Name: "IR 3", Start: t0.Add(-3 * time.Hour), End: t0.Add(-2 * time.Hour)},
-						{ID: "ir2", SystemID: "test2", Name: "IR 2", Start: t0.Add(-5 * time.Hour), End: t0.Add(-4 * time.Hour)},
+						{ID: "ir1", SystemIDs: []string{"test2"}, Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
+						{ID: "ir3", SystemIDs: []string{"test3"}, Name: "IR 3", Start: t0.Add(-3 * time.Hour), End: t0.Add(-2 * time.Hour)},
+						{ID: "ir2", SystemIDs: []string{"test2", "test3"}, Name: "IR 2", Start: t0.Add(-5 * time.Hour), End: t0.Add(-4 * time.Hour)},
 					},
 					SystemDetails: []model.SystemDetails{
 						{
@@ -135,17 +135,18 @@ func TestGenerate(t *testing.T) {
 						},
 						{
 							System:   model.System{ID: "test2", Name: "Test 2", Description: "Something 2"},
-							LatestIR: &model.IncidentReport{ID: "ir1", SystemID: "test2", Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
+							LatestIR: &model.IncidentReport{ID: "ir1", SystemIDs: []string{"test2"}, Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
 							IRs: []*model.IncidentReport{
-								{ID: "ir1", SystemID: "test2", Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
-								{ID: "ir2", SystemID: "test2", Name: "IR 2", Start: t0.Add(-5 * time.Hour), End: t0.Add(-4 * time.Hour)},
+								{ID: "ir1", SystemIDs: []string{"test2"}, Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
+								{ID: "ir2", SystemIDs: []string{"test2", "test3"}, Name: "IR 2", Start: t0.Add(-5 * time.Hour), End: t0.Add(-4 * time.Hour)},
 							},
 						},
 						{
 							System:   model.System{ID: "test3", Name: "Test 3", Description: "Something 3"},
-							LatestIR: &model.IncidentReport{ID: "ir3", SystemID: "test3", Name: "IR 3", Start: t0.Add(-3 * time.Hour), End: t0.Add(-2 * time.Hour)},
+							LatestIR: &model.IncidentReport{ID: "ir3", SystemIDs: []string{"test3"}, Name: "IR 3", Start: t0.Add(-3 * time.Hour), End: t0.Add(-2 * time.Hour)},
 							IRs: []*model.IncidentReport{
-								{ID: "ir3", SystemID: "test3", Name: "IR 3", Start: t0.Add(-3 * time.Hour), End: t0.Add(-2 * time.Hour)},
+								{ID: "ir3", SystemIDs: []string{"test3"}, Name: "IR 3", Start: t0.Add(-3 * time.Hour), End: t0.Add(-2 * time.Hour)},
+								{ID: "ir2", SystemIDs: []string{"test2", "test3"}, Name: "IR 2", Start: t0.Add(-5 * time.Hour), End: t0.Add(-4 * time.Hour)},
 							},
 						},
 					},

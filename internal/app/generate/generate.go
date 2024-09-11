@@ -98,7 +98,9 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 
 	irsBySystem := map[string][]*model.IncidentReport{}
 	for _, ir := range history {
-		irsBySystem[ir.SystemID] = append(irsBySystem[ir.SystemID], ir)
+		for _, id := range ir.SystemIDs {
+			irsBySystem[id] = append(irsBySystem[id], ir)
+		}
 	}
 
 	// Add latest update if the incident is ongoing

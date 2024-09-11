@@ -50,13 +50,13 @@ func NewDevelopmentRepository() storagememory.Repository {
 		}
 
 		irs = append(irs, model.IncidentReport{
-			ID:       fmt.Sprintf("ir-%d", i),
-			Name:     fmt.Sprintf("Incident report %d", i),
-			SystemID: systems[rand.Intn(len(systems))].ID,
-			Start:    start,
-			End:      end,
-			Impact:   impacts[rand.Intn(len(impacts))],
-			Timeline: timeline,
+			ID:        fmt.Sprintf("ir-%d", i),
+			Name:      fmt.Sprintf("Incident report %d", i),
+			SystemIDs: []string{systems[rand.Intn(len(systems))].ID},
+			Start:     start,
+			End:       end,
+			Impact:    impacts[rand.Intn(len(impacts))],
+			Timeline:  timeline,
 		})
 	}
 
