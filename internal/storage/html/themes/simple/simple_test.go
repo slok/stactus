@@ -82,7 +82,7 @@ func TestCreateUI(t *testing.T) {
 				BrandURL:   "https://monkeyisland.slok.dev",
 			},
 			ui: model.UI{
-				LatestUpdate: &model.IncidentReportDetail{
+				LatestUpdate: &model.IncidentReportEvent{
 					Description: "There is a problem",
 				},
 				SystemDetails: []model.SystemDetails{
@@ -120,37 +120,37 @@ func TestCreateUI(t *testing.T) {
 				},
 				History: []*model.IncidentReport{
 					{
-						ID:       "ir-1",
-						Name:     "Incident report 1",
-						SystemID: "test1",
-						Start:    t0,
-						End:      t0.Add(2 * time.Hour),
-						Impact:   model.IncidentImpactMajor,
-						Details: []model.IncidentReportDetail{
+						ID:        "ir-1",
+						Name:      "Incident report 1",
+						SystemIDs: []string{"test1"},
+						Start:     t0,
+						End:       t0.Add(2 * time.Hour),
+						Impact:    model.IncidentImpactMajor,
+						Timeline: []model.IncidentReportEvent{
 							{Description: "Some detail 11"},
 							{Description: "Some detail 21"},
 						},
 					},
 					{
-						ID:       "ir-2",
-						Name:     "Incident report 2",
-						SystemID: "test1",
-						Start:    t0.Add(10 * time.Hour),
-						End:      t0.Add(15 * time.Hour),
-						Impact:   model.IncidentImpactCritical,
-						Details: []model.IncidentReportDetail{
+						ID:        "ir-2",
+						Name:      "Incident report 2",
+						SystemIDs: []string{"test1"},
+						Start:     t0.Add(10 * time.Hour),
+						End:       t0.Add(15 * time.Hour),
+						Impact:    model.IncidentImpactCritical,
+						Timeline: []model.IncidentReportEvent{
 							{Description: "Some detail 12"},
 							{Description: "Some detail 22"},
 						},
 					},
 					{
-						ID:       "ir-3",
-						Name:     "Incident report 3",
-						SystemID: "test1",
-						Start:    t0.Add(20 * time.Hour),
-						End:      t0.Add(25 * time.Hour),
-						Impact:   model.IncidentImpactMinor,
-						Details: []model.IncidentReportDetail{
+						ID:        "ir-3",
+						Name:      "Incident report 3",
+						SystemIDs: []string{"test1"},
+						Start:     t0.Add(20 * time.Hour),
+						End:       t0.Add(25 * time.Hour),
+						Impact:    model.IncidentImpactMinor,
+						Timeline: []model.IncidentReportEvent{
 							{Description: "Some detail 13"},
 							{Description: "Some detail 23"},
 						},
@@ -200,13 +200,13 @@ func TestCreateUI(t *testing.T) {
 			ui: model.UI{
 				History: []*model.IncidentReport{
 					{
-						ID:       "1234567890",
-						Name:     "Incident report 1",
-						SystemID: "test1",
-						Start:    t0,
-						End:      t0.Add(2 * time.Hour),
-						Impact:   model.IncidentImpactMajor,
-						Details: []model.IncidentReportDetail{
+						ID:        "1234567890",
+						Name:      "Incident report 1",
+						SystemIDs: []string{"test1"},
+						Start:     t0,
+						End:       t0.Add(2 * time.Hour),
+						Impact:    model.IncidentImpactMajor,
+						Timeline: []model.IncidentReportEvent{
 							{TS: t0.Add(5 * time.Minute), Kind: model.IncidentUpdateKindResolved, Description: "Some detail 13"},
 							{TS: t0.Add(3 * time.Minute), Kind: model.IncidentUpdateKindUpdate, Description: "Some detail 12"},
 							{TS: t0.Add(2 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some detail 13"},
@@ -214,12 +214,12 @@ func TestCreateUI(t *testing.T) {
 					},
 
 					{
-						ID:       "0987654321",
-						Name:     "Incident report 2",
-						SystemID: "test1",
-						Start:    t0,
-						Impact:   model.IncidentImpactMinor,
-						Details: []model.IncidentReportDetail{
+						ID:        "0987654321",
+						Name:      "Incident report 2",
+						SystemIDs: []string{"test1"},
+						Start:     t0,
+						Impact:    model.IncidentImpactMinor,
+						Timeline: []model.IncidentReportEvent{
 							{TS: t0.Add(15 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some detail 23"},
 						},
 					},
