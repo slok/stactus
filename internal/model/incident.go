@@ -7,6 +7,7 @@ import (
 type IncidentImpact string
 
 const (
+	IncidentImpactNone     IncidentImpact = "none"     // Black.
 	IncidentImpactMinor    IncidentImpact = "minor"    // Yellow.
 	IncidentImpactMajor    IncidentImpact = "major"    // Orange.
 	IncidentImpactCritical IncidentImpact = "critical" // Red.
@@ -25,8 +26,8 @@ type IncidentReport struct {
 type IncidentUpdateKind string
 
 const (
-	IncidentUpdateKindInvestigating IncidentUpdateKind = "investigating"
 	IncidentUpdateKindUpdate        IncidentUpdateKind = "update"
+	IncidentUpdateKindInvestigating IncidentUpdateKind = "investigating"
 	IncidentUpdateKindResolved      IncidentUpdateKind = "resolved"
 )
 

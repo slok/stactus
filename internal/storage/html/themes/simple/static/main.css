@@ -21,7 +21,12 @@
 
 .detail {
     border-left: 4px solid #7f7f7f;
-    background-color: #f7f7f7;
+    background-color: #f4f1f1;
+}
+
+.impact-none {
+    border-left: 6px solid #7f7f7f;
+    background-color: #f4f1f1;
 }
 
 .impact-minor {
