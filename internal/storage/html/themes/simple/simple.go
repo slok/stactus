@@ -418,10 +418,8 @@ func historyTS(t time.Time) string {
 	return t.Format(`Jan _2, 15:04`)
 }
 
-var enCaser = cases.Title(language.English)
-
 func strTitle(s string) string {
-	return enCaser.String(s)
+	return cases.Title(language.English).String(s)
 }
 
 func renderMarkdown(md string) string {
