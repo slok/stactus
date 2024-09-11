@@ -12,32 +12,9 @@ import (
 	storagememory "github.com/slok/stactus/internal/storage/memory"
 )
 
-func NewGithubRepository() (*storagememory.Repository, error) {
-	return newStatusPageURLRepository("https://www.githubstatus.com/")
-}
-
-func NewDigitalOceanRepository() (*storagememory.Repository, error) {
-	return newStatusPageURLRepository("https://status.digitalocean.com/")
-}
-
-func NewTwilioRepository() (*storagememory.Repository, error) {
-	return newStatusPageURLRepository("https://status.twilio.com/")
-}
-
-func NewHashicorpRepository() (*storagememory.Repository, error) {
-	return newStatusPageURLRepository("https://status.hashicorp.com/")
-}
-
-func NewDiscordRepository() (*storagememory.Repository, error) {
-	return newStatusPageURLRepository("https://discordstatus.com/")
-}
-
-func NewCloudflareRepository() (*storagememory.Repository, error) {
-	return newStatusPageURLRepository("https://www.cloudflarestatus.com/")
-}
-
-// Same as newStatusPageRepository but instead it will download the data form the API.
-func newStatusPageURLRepository(url string) (*storagememory.Repository, error) {
+// NewStatusPageRepository returns a repository that knows how to load the incidents and components from
+// Atlassian status page API.
+func NewStatusPageRepository(url string) (*storagememory.Repository, error) {
 	// Sanitize URL
 	url = strings.TrimSpace(url)
 	url = strings.TrimSuffix(url, "/")
