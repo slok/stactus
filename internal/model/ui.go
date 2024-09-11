@@ -10,5 +10,5 @@ type SystemDetails struct {
 type UI struct {
 	SystemDetails []SystemDetails
 	History       []*IncidentReport
-	LatestUpdate  *IncidentReportDetail
+	LatestUpdate  *IncidentReportEvent
 }

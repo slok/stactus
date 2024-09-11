@@ -19,7 +19,7 @@ type IncidentReport struct {
 	Start    time.Time
 	End      time.Time
 	Impact   IncidentImpact
-	Details  []IncidentReportDetail
+	Timeline []IncidentReportEvent
 }
 
 type IncidentUpdateKind string
@@ -30,7 +30,7 @@ const (
 	IncidentUpdateKindResolved      IncidentUpdateKind = "resolved"
 )
 
-type IncidentReportDetail struct {
+type IncidentReportEvent struct {
 	Description string
 	Kind        IncidentUpdateKind
 	TS          time.Time

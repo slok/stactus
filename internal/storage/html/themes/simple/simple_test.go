@@ -82,7 +82,7 @@ func TestCreateUI(t *testing.T) {
 				BrandURL:   "https://monkeyisland.slok.dev",
 			},
 			ui: model.UI{
-				LatestUpdate: &model.IncidentReportDetail{
+				LatestUpdate: &model.IncidentReportEvent{
 					Description: "There is a problem",
 				},
 				SystemDetails: []model.SystemDetails{
@@ -126,7 +126,7 @@ func TestCreateUI(t *testing.T) {
 						Start:    t0,
 						End:      t0.Add(2 * time.Hour),
 						Impact:   model.IncidentImpactMajor,
-						Details: []model.IncidentReportDetail{
+						Timeline: []model.IncidentReportEvent{
 							{Description: "Some detail 11"},
 							{Description: "Some detail 21"},
 						},
@@ -138,7 +138,7 @@ func TestCreateUI(t *testing.T) {
 						Start:    t0.Add(10 * time.Hour),
 						End:      t0.Add(15 * time.Hour),
 						Impact:   model.IncidentImpactCritical,
-						Details: []model.IncidentReportDetail{
+						Timeline: []model.IncidentReportEvent{
 							{Description: "Some detail 12"},
 							{Description: "Some detail 22"},
 						},
@@ -150,7 +150,7 @@ func TestCreateUI(t *testing.T) {
 						Start:    t0.Add(20 * time.Hour),
 						End:      t0.Add(25 * time.Hour),
 						Impact:   model.IncidentImpactMinor,
-						Details: []model.IncidentReportDetail{
+						Timeline: []model.IncidentReportEvent{
 							{Description: "Some detail 13"},
 							{Description: "Some detail 23"},
 						},
@@ -206,7 +206,7 @@ func TestCreateUI(t *testing.T) {
 						Start:    t0,
 						End:      t0.Add(2 * time.Hour),
 						Impact:   model.IncidentImpactMajor,
-						Details: []model.IncidentReportDetail{
+						Timeline: []model.IncidentReportEvent{
 							{TS: t0.Add(5 * time.Minute), Kind: model.IncidentUpdateKindResolved, Description: "Some detail 13"},
 							{TS: t0.Add(3 * time.Minute), Kind: model.IncidentUpdateKindUpdate, Description: "Some detail 12"},
 							{TS: t0.Add(2 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some detail 13"},
@@ -219,7 +219,7 @@ func TestCreateUI(t *testing.T) {
 						SystemID: "test1",
 						Start:    t0,
 						Impact:   model.IncidentImpactMinor,
-						Details: []model.IncidentReportDetail{
+						Timeline: []model.IncidentReportEvent{
 							{TS: t0.Add(15 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some detail 23"},
 						},
 					},

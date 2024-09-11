@@ -252,8 +252,8 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 		incidents := []incidentTplData{}
 		for _, ir := range page {
 			latestUpdate := ""
-			if len(ir.Details) > 0 {
-				latestUpdate = ir.Details[0].Description
+			if len(ir.Timeline) > 0 {
+				latestUpdate = ir.Timeline[0].Description
 			}
 			endTS := ""
 			if !ir.End.IsZero() {
@@ -325,7 +325,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 		}
 
 		timeline := []timelineTplData{}
-		for _, d := range ir.Details {
+		for _, d := range ir.Timeline {
 			timeline = append(timeline, timelineTplData{
 				Kind:   strTitle(string(d.Kind)),
 				TS:     historyTS(d.TS),

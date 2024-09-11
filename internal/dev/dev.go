@@ -40,9 +40,9 @@ func NewDevelopmentRepository() storagememory.Repository {
 		start := t0.Add(time.Duration(i) * time.Hour)
 		end := start.Add(1 * time.Hour)
 
-		details := []model.IncidentReportDetail{}
+		timeline := []model.IncidentReportEvent{}
 		for i := 0; i < rand.Intn(15); i++ {
-			details = append(details, model.IncidentReportDetail{
+			timeline = append(timeline, model.IncidentReportEvent{
 				Description: fmt.Sprintf("something that is a detail %d", i),
 				Kind:        updateKinds[rand.Intn(len(updateKinds))],
 				TS:          start.Add(time.Duration(i) * time.Minute),
@@ -56,7 +56,7 @@ func NewDevelopmentRepository() storagememory.Repository {
 			Start:    start,
 			End:      end,
 			Impact:   impacts[rand.Intn(len(impacts))],
-			Details:  details,
+			Timeline: timeline,
 		})
 	}
 
