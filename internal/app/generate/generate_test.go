@@ -67,7 +67,8 @@ func TestGenerate(t *testing.T) {
 				mig.On("ListAllIncidentReports", mock.Anything).Return([]model.IncidentReport{}, nil)
 
 				exp := model.UI{
-					History: []*model.IncidentReport{},
+					OpenedIRs: []*model.IncidentReport{},
+					History:   []*model.IncidentReport{},
 					SystemDetails: []model.SystemDetails{
 						{
 							System: model.System{ID: "test1", Name: "Test 1", Description: "Something 1"},
@@ -121,8 +122,8 @@ func TestGenerate(t *testing.T) {
 				}, nil)
 
 				exp := model.UI{
-					LatestUpdate: &model.IncidentReportEvent{
-						Description: "desc1",
+					OpenedIRs: []*model.IncidentReport{
+						{ID: "ir1", SystemIDs: []string{"test2"}, Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
 					},
 					History: []*model.IncidentReport{
 						{ID: "ir1", SystemIDs: []string{"test2"}, Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},

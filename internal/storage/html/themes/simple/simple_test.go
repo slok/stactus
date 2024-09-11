@@ -82,8 +82,12 @@ func TestCreateUI(t *testing.T) {
 				BrandURL:   "https://monkeyisland.slok.dev",
 			},
 			ui: model.UI{
-				LatestUpdate: &model.IncidentReportEvent{
-					Description: "There is a problem",
+				OpenedIRs: []*model.IncidentReport{
+					{
+						Timeline: []model.IncidentReportEvent{
+							{Description: "There is a problem"},
+						},
+					},
 				},
 				SystemDetails: []model.SystemDetails{
 					{
