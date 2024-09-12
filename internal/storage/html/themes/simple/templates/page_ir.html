@@ -5,51 +5,6 @@
 {{template "shared_head" .}}
 
 <body>
-    <div class="wrapper">
-        <h1>{{.Title}}</h1>
-        <h2> Details </h2>
-        <div>
-            <table>
-                <tr>
-                    <td><strong>ID</strong></td>
-                    <td>{{ .ID }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Severity</strong></td>
-                    <td>{{ .Impact }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Started</strong></td>
-                    <td>{{ .StartTS }}</td>
-                </tr>
-                <tr>
-                    <td><strong>End</strong></td>
-                    {{ if .EndTS}}
-                    <td>{{ .EndTS }}</td>
-                    {{ else }}
-                    <td> Ongoing </td>
-                    {{ end}}
-                </tr>
-                {{ if .Duration}}
-                <tr>
-                    <td><strong>Duration</strong></td>
-                    <td>{{ .Duration }}</td>
-                </tr>
-                {{ end}}
-            </table>
-        </div>
-        <h2> Timeline </h2>
-        {{ range .Timeline }} 
-        <div class="box detail">
-            <h3> {{ .Kind }} - {{.TS}} </h3>
-            <p> {{ .Detail }} </p>
-        </div>
-        {{ end }}
-
-        <section>
-            <a href="{{ .IndexURL}}">Status</a>
-        </section>
-    </div>
     {{template "shared_footer" .}}
 </body>
 

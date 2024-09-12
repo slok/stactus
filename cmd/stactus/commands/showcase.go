@@ -118,7 +118,6 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 				logger.Infof("Generating %s example", client.Name)
 
 				// Setup repositories.
-
 				devRepo, err := dev.NewStatusPageRepository(client.URL)
 				if err != nil {
 					return fmt.Errorf("could not create repository: %w", err)
