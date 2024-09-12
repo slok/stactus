@@ -1,0 +1,44 @@
+{{define "page_history"}}
+<!DOCTYPE html>
+<html lang="en">
+
+{{template "shared_head" .}}
+
+<body>
+    <div class="wrapper">
+        <h1>Incident History</h1>
+        {{ range .Incidents }}
+        <div class="box impact-{{.Impact}}">
+            <h2><a href="{{ .URL }}">{{ .Title }}</a></h2>
+            <p>
+                {{ .LatestUpdate }}
+            </p>
+
+            <br>
+            <small>
+            {{ if .EndTS }}
+                {{ .StartTS }} - {{ .EndTS }}
+            {{ else }}
+                {{ .StartTS }} - Ongoing
+            {{ end }}
+            </small>
+        </div>
+        {{ end }}
+        <div class="row">
+            {{ if .PreviousURL }}
+                <div class="block">
+                    <a href="{{ .PreviousURL }}"> ⮜ Previous </a>
+                </div>
+            {{ end }}
+            {{ if .NextURL }}
+                <div class="block">
+                    <a href="{{ .NextURL }}"> Next ⮞ </a>
+                </div>
+            {{ end}}
+        </div>
+    </div>
+    {{template "shared_footer" .}}
+</body>
+
+</html>
+{{end}}
