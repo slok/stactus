@@ -11,6 +11,8 @@ import (
 
 	appgenerate "github.com/slok/stactus/internal/app/generate"
 	"github.com/slok/stactus/internal/dev"
+	"github.com/slok/stactus/internal/storage"
+	htmlbase "github.com/slok/stactus/internal/storage/html/themes/base"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 )
 
@@ -61,6 +63,11 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 		{Name: "Twilio", Path: "twilio", URL: "https://status.twilio.com/"},
 	}
 
+	themes := []string{
+		themeBase,
+		themeSimple,
+	}
+
 	// Prepare run entrypoints.
 	var g run.Group
 
@@ -86,8 +93,11 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 
 				showcaseLinks := ""
 				for _, client := range statusPageClients {
-					url := c.siteURL + "/" + client.Path
-					showcaseLinks += fmt.Sprintf(`<div><a href="%s">%s</a><div>`, url, client.Name)
+					for _, theme := range themes {
+						url := c.siteURL + "/" + theme + "/" + client.Path
+						name := fmt.Sprintf("%s (%s)", client.Name, theme)
+						showcaseLinks += fmt.Sprintf(`<div><a href="%s">%s</a><div>`, url, name)
+					}
 				}
 
 				err := os.WriteFile(indexFile, []byte(`<html>
@@ -123,33 +133,57 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 					return fmt.Errorf("could not create repository: %w", err)
 				}
 
-				uiCreator, err := htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
-					OutPath: path.Join(c.outPath, client.Path),
-					SiteURL: c.siteURL + "/" + client.Path,
-					Logger:  logger,
-					ThemeCustomization: htmlsimple.ThemeCustomization{
-						BrandTitle: client.Name,
-						BrandURL:   client.URL,
-					},
-				})
-				if err != nil {
-					return fmt.Errorf("could not create HTML generator: %w", err)
-				}
+				// Render a client per theme.
+				for _, theme := range themes {
+					outPath := path.Join(c.outPath, theme, client.Path)
+					siteURL := c.siteURL + "/" + theme + "/" + client.Path
 
-				// Generator service.
-				genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-					SystemGetter: devRepo,
-					IRGetter:     devRepo,
-					UICreator:    uiCreator,
-					Logger:       logger,
-				})
-				if err != nil {
-					return fmt.Errorf("could not create generation service: %w", err)
-				}
+					var uiCreator storage.UICreator
+					switch theme {
+					case themeBase:
+						uiCreator, err = htmlbase.NewGenerator(htmlbase.GeneratorConfig{
+							OutPath: outPath,
+							SiteURL: siteURL,
+							Logger:  logger,
+							ThemeCustomization: htmlbase.ThemeCustomization{
+								BrandTitle: client.Name,
+								BrandURL:   client.URL,
+							},
+						})
+						if err != nil {
+							return fmt.Errorf("could not create HTML generator: %w", err)
+						}
 
-				_, err = genService.Generate(ctx, appgenerate.GenerateReq{})
-				if err != nil {
-					return fmt.Errorf("generation failed: %w", err)
+					case themeSimple:
+						uiCreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
+							OutPath: outPath,
+							SiteURL: siteURL,
+							Logger:  logger,
+							ThemeCustomization: htmlsimple.ThemeCustomization{
+								BrandTitle: client.Name,
+								BrandURL:   client.URL,
+							},
+						})
+						if err != nil {
+							return fmt.Errorf("could not create HTML generator: %w", err)
+						}
+					}
+
+					// Generator service.
+					genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
+						SystemGetter: devRepo,
+						IRGetter:     devRepo,
+						UICreator:    uiCreator,
+						Logger:       logger,
+					})
+					if err != nil {
+						return fmt.Errorf("could not create generation service: %w", err)
+					}
+
+					_, err = genService.Generate(ctx, appgenerate.GenerateReq{})
+					if err != nil {
+						return fmt.Errorf("generation failed: %w", err)
+					}
 				}
 
 				return nil
