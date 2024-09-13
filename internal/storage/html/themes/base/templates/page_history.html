@@ -16,10 +16,10 @@
 
             <br>
             <small>
-            {{ if .EndTS }}
-                {{ .StartTS }} - {{ .EndTS }}
-            {{ else }}
+            {{ if .EndTS.IsZero }}
                 {{ .StartTS }} - Ongoing
+            {{ else }}
+                {{ .StartTS | date "Jan _2, 15:04" }} - {{ .EndTS | date "Jan _2, 15:04" }}
             {{ end }}
             </small>
         </div>

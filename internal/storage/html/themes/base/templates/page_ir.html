@@ -16,18 +16,18 @@
                 </tr>
                 <tr>
                     <td><strong>Severity</strong></td>
-                    <td>{{ .Impact }}</td>
+                    <td>{{ .Impact | title }}</td>
                 </tr>
                 <tr>
                     <td><strong>Started</strong></td>
-                    <td>{{ .StartTS }}</td>
+                    <td>{{ .StartTS | date "Jan _2, 15:04" }}</td>
                 </tr>
                 <tr>
                     <td><strong>End</strong></td>
-                    {{ if .EndTS}}
-                    <td>{{ .EndTS }}</td>
-                    {{ else }}
+                    {{ if .EndTS.IsZero }}
                     <td> Ongoing </td>
+                    {{ else }}
+                    <td>{{ .EndTS | date "Jan _2, 15:04" }}</td>
                     {{ end}}
                 </tr>
                 {{ if .Duration}}
@@ -41,13 +41,13 @@
         <h2> Timeline </h2>
         {{ range .Timeline }} 
         <div class="box detail">
-            <h3> {{ .Kind }} - {{.TS}} </h3>
+            <h3> {{ .Kind | title }} - {{ .TS | date "Jan _2, 15:04" }} </h3>
             <p> {{ .Detail }} </p>
         </div>
         {{ end }}
 
         <section>
-            <a href="{{ .IndexURL}}">Status</a>
+            <a href="{{ .URLPrefix}}/">Status</a>
         </section>
     </div>
     {{template "shared_footer" .}}
