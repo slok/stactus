@@ -20,7 +20,7 @@
                         <h3><a href="{{ .URL }}"> {{ .Name }}</a></h3>
                         <div>{{ .LatestUpdate }}</div>
                         <br>
-                        <small>Latest update at {{ .TS }}</small>
+                        <small>Latest update at {{ .TS | date "Jan _2, 15:04" }}</small>
                     </div>
                 {{ end }}
             {{ end }}

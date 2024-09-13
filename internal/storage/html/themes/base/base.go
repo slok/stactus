@@ -10,8 +10,6 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 
 	"github.com/slok/stactus/internal/log"
 	"github.com/slok/stactus/internal/model"
@@ -31,6 +29,7 @@ type Generator struct {
 	outPath            string
 	siteURL            string
 	themeCustomization ThemeCustomization
+	tplCommonData      tplCommonData
 }
 
 type GeneratorConfig struct {
@@ -104,6 +103,13 @@ func (c *GeneratorConfig) defaults() error {
 
 }
 
+type tplCommonData struct {
+	URLPrefix  string
+	BrandTitle string
+	BrandURL   string
+	HistoryURL string
+}
+
 // NewGenerator returns a base theme generator, this is the simplest theme, it can be used as a base (hence the name)
 // to create new themes on top instead of creating a new one from scratch.
 func NewGenerator(config GeneratorConfig) (*Generator, error) {
@@ -111,14 +117,22 @@ func NewGenerator(config GeneratorConfig) (*Generator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid configuration: %w", err)
 	}
-
-	return &Generator{
+	g := &Generator{
 		fileManager:        config.FileManager,
 		renderer:           *config.Renderer,
 		outPath:            config.OutPath,
 		siteURL:            config.SiteURL,
 		themeCustomization: config.ThemeCustomization,
-	}, nil
+	}
+
+	g.tplCommonData = tplCommonData{
+		URLPrefix:  strings.TrimSuffix(g.siteURL, "/"),
+		BrandTitle: g.themeCustomization.BrandTitle,
+		BrandURL:   g.themeCustomization.BrandURL,
+		HistoryURL: g.urlHistory(0, false),
+	}
+
+	return g, nil
 }
 
 func (g Generator) CreateUI(ctx context.Context, ui model.UI) error {
@@ -168,32 +182,27 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI) error {
 		Name        string
 		Description string
 		OK          bool
+		Impact      string
 	}
 
 	type ongoingIRsTplData struct {
 		Name         string
 		URL          string
 		LatestUpdate string
-		TS           string
+		TS           time.Time
 		Impact       string
 	}
 
 	type tplData struct {
-		CSSURL     string
+		tplCommonData
 		AllOK      bool
 		OngoingIRs []ongoingIRsTplData
-		BrandTitle string
-		BrandURL   string
-		HistoryURL string
 		Systems    []System
 	}
 
 	data := tplData{
-		CSSURL:     g.urlCSS(false),
-		AllOK:      len(ui.OpenedIRs) == 0,
-		BrandTitle: g.themeCustomization.BrandTitle,
-		BrandURL:   g.themeCustomization.BrandURL,
-		HistoryURL: g.urlHistory(0, false),
+		tplCommonData: g.tplCommonData,
+		AllOK:         len(ui.OpenedIRs) == 0,
 	}
 
 	for _, ir := range ui.OpenedIRs {
@@ -201,20 +210,23 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI) error {
 			Name:         ir.Name,
 			URL:          g.urlIRDetail(ir.ID, false),
 			LatestUpdate: renderMarkdown(ir.Timeline[0].Description),
-			TS:           historyTS(ir.Timeline[0].TS),
+			TS:           ir.Timeline[0].TS,
 			Impact:       string(ir.Impact),
 		})
 	}
 
 	for _, s := range ui.SystemDetails {
 		ok := true
+		impact := model.IncidentImpactNone
 		if s.LatestIR != nil && s.LatestIR.End.IsZero() {
 			ok = false
+			impact = s.LatestIR.Impact
 		}
 		data.Systems = append(data.Systems, System{
 			Name:        s.System.Name,
 			Description: s.System.Description,
 			OK:          ok,
+			Impact:      string(impact),
 		})
 	}
 
@@ -238,15 +250,13 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 		Title        string
 		URL          string
 		LatestUpdate string
-		StartTS      string
-		EndTS        string
+		StartTS      time.Time
+		EndTS        time.Time
 		Impact       string
 	}
 
 	type tplData struct {
-		CSSURL      string
-		BrandTitle  string
-		BrandURL    string
+		tplCommonData
 		NextURL     string
 		PreviousURL string
 		Incidents   []incidentTplData
@@ -281,28 +291,22 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 			if len(ir.Timeline) > 0 {
 				latestUpdate = renderMarkdown(ir.Timeline[0].Description)
 			}
-			endTS := ""
-			if !ir.End.IsZero() {
-				endTS = historyTS(ir.End)
-			}
 
 			incidents = append(incidents, incidentTplData{
 				Title:        ir.Name,
 				URL:          g.urlIRDetail(ir.ID, false),
 				LatestUpdate: latestUpdate,
-				StartTS:      historyTS(ir.Start),
-				EndTS:        endTS,
+				StartTS:      ir.Start,
+				EndTS:        ir.End,
 				Impact:       string(ir.Impact),
 			})
 		}
 
 		data := tplData{
-			CSSURL:      g.urlCSS(false),
-			BrandTitle:  g.themeCustomization.BrandTitle,
-			BrandURL:    g.themeCustomization.BrandURL,
-			NextURL:     nextURL,
-			PreviousURL: previousURL,
-			Incidents:   incidents,
+			tplCommonData: g.tplCommonData,
+			NextURL:       nextURL,
+			PreviousURL:   previousURL,
+			Incidents:     incidents,
 		}
 
 		// Render history first page.
@@ -324,52 +328,46 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI) error {
 func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 	type timelineTplData struct {
 		Kind   string
-		TS     string
+		TS     time.Time
 		Detail string
 	}
 
 	type tplData struct {
-		CSSURL     string
-		BrandTitle string
-		Title      string
-		ID         string
-		Impact     string
-		StartTS    string
-		EndTS      string
-		Duration   string
-		Timeline   []timelineTplData
-		IndexURL   string
+		tplCommonData
+		Title    string
+		ID       string
+		Impact   string
+		StartTS  time.Time
+		EndTS    time.Time
+		Duration time.Duration
+		Timeline []timelineTplData
 	}
 
 	// Render a IR per page.
 	for _, ir := range ui.History {
-		endTS := ""
-		duration := ""
+		var duration time.Duration
 		if !ir.End.IsZero() {
-			endTS = historyTS(ir.End)
-			duration = ir.End.Sub(ir.Start).String()
+			duration = ir.End.Sub(ir.Start)
 		}
 
 		timeline := []timelineTplData{}
 		for _, d := range ir.Timeline {
 			timeline = append(timeline, timelineTplData{
-				Kind:   strTitle(string(d.Kind)),
-				TS:     historyTS(d.TS),
+				Kind:   string(d.Kind),
+				TS:     d.TS,
 				Detail: renderMarkdown(d.Description),
 			})
 		}
 
 		data := tplData{
-			CSSURL:     g.urlCSS(false),
-			BrandTitle: g.themeCustomization.BrandTitle,
-			Title:      ir.Name,
-			ID:         ir.ID,
-			Impact:     strTitle(string(ir.Impact)),
-			StartTS:    historyTS(ir.Start),
-			EndTS:      endTS,
-			Duration:   duration,
-			Timeline:   timeline,
-			IndexURL:   g.urlIndex(false),
+			tplCommonData: g.tplCommonData,
+			Title:         ir.Name,
+			ID:            ir.ID,
+			Impact:        string(ir.Impact),
+			StartTS:       ir.Start,
+			EndTS:         ir.End,
+			Duration:      duration,
+			Timeline:      timeline,
 		}
 
 		// Render history first page.
@@ -385,15 +383,6 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI) error {
 	}
 
 	return nil
-}
-
-func (g Generator) urlCSS(fileName bool) string {
-	u := "static/main.css"
-	if fileName {
-		return u + u
-	}
-
-	return g.siteURL + u
 }
 
 func (g Generator) urlHistory(page int, fileName bool) string {
@@ -425,10 +414,6 @@ func (g Generator) urlIRDetail(irID string, fileName bool) string {
 
 func historyTS(t time.Time) string {
 	return t.Format(`Jan _2, 15:04`)
-}
-
-func strTitle(s string) string {
-	return cases.Title(language.English).String(s)
 }
 
 func renderMarkdown(md string) string {

@@ -262,8 +262,8 @@ func TestCreateUI(t *testing.T) {
 			},
 			expectHTML: map[string][]string{
 				"./ir/1234567890.html": {
-					`<h1>Incident report 1</h1>`,  // We have the title page.
-					`<a href="/index">Status</a>`, // We have the link to the status.
+					`<h1>Incident report 1</h1>`, // We have the title page.
+					`<a href="/">Status</a>`,     // We have the link to the status.
 
 					// Details.
 					`<h2> Details </h2>`,
@@ -281,8 +281,8 @@ func TestCreateUI(t *testing.T) {
 				},
 
 				"./ir/0987654321.html": {
-					`<h1>Incident report 2</h1>`,  // We have the title page.
-					`<a href="/index">Status</a>`, // We have the link to the status.
+					`<h1>Incident report 2</h1>`, // We have the title page.
+					`<a href="/">Status</a>`,     // We have the link to the status.
 
 					// Details.
 					`<h2> Details </h2>`,
