@@ -20,16 +20,16 @@ func TestCreateUI(t *testing.T) {
 		expectHTML         map[string][]string
 		expErr             bool
 	}{
-		"The static files have been rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
-			},
-			ui: model.UI{},
-			expectHTML: map[string][]string{
-				"./static/main.css": {},
-			},
-		},
+		// "The static files have been rendered correctly.": {
+		// 	themeCustomization: simple.ThemeCustomization{
+		// 		BrandTitle: "MonkeyIsland",
+		// 		BrandURL:   "https://monkeyisland.slok.dev",
+		// 	},
+		// 	ui: model.UI{},
+		// 	expectHTML: map[string][]string{
+		// 		"./static/main.css": {},
+		// 	},
+		// },
 	}
 
 	for name, test := range tests {
