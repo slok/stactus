@@ -412,10 +412,6 @@ func (g Generator) urlIRDetail(irID string, fileName bool) string {
 	return g.siteURL + u
 }
 
-func historyTS(t time.Time) string {
-	return t.Format(`Jan _2, 15:04`)
-}
-
 func renderMarkdown(md string) string {
 	// create markdown parser with extensions
 	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
