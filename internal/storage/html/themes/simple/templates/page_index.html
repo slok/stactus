@@ -4,7 +4,73 @@
 
 {{template "shared_head" .}}
 
-<body>
+<body style="width:960px; margin:0 auto;">
+    <header class="container-fluid">
+        {{template "shared_nav" .}}
+    </header>
+    <main class="container-fluid">
+        <br />
+        <!-- Status -->
+        {{ if .AllOK}}
+        <section class="grid">
+            <div></div>
+            <article class="operational-box">
+                <i class="ph-bold ph-check"></i> <strong>All systems operational</strong>
+            </article>
+            <div></div>
+        </section>
+        {{ else }}
+        <section>
+            <h3>Ongoing Incidents</h3>
+            {{ range .OngoingIRs }}
+                <article class="box-impact-{{.Impact}}">
+                    <header class="header-impact-{{.Impact}}">
+                        <h4><a href="{{ .URL }}" class="incident-title"> {{ .Name }}</a></h4>
+                    </header>
+                    {{ .LatestUpdate }}
+                    <footer>
+                        <small>Latest update at <span x-init="renderTSUnixPrettyNoYear($el)">{{ .TS | unixEpoch }}</span></small>
+                    </footer>
+                </article>
+            {{ end }}
+        </section>
+        {{ end }}
+
+        <br />
+        <section>
+            <h3>Current status</h3>
+            <!-- Make 2 columns -->
+            {{ range ( .Systems | chunk 2 ) }}
+            <div class="grid">
+                {{ range . }}
+                <article>
+                    {{ .Name }}
+
+                    {{ if .Description }}
+                        <span data-tooltip="{{ .Description }}"><i class="ph-thin ph-question"></i></span>
+                    {{end }}
+
+                    <span class="move-right">
+                        {{ if .OK }}
+                        <i style="font-size: 150%;" class="ph-fill ph-check-circle text-ok"></i>
+                        {{ else }}
+                        <i style="font-size: 150%;" class="ph-fill ph-warning-circle text-{{ .Impact }}"></i>
+                        {{ end }}
+                    </span>
+
+                    <div>
+                        {{ if .OK }}
+                        <small> Normal </small>
+                        {{ else }}
+                        <small> Degraded </small>
+                        {{ end }}
+                    </div>
+                </article>
+                {{ end }}
+            </div>
+            {{ end }}
+        </section>
+    </main>
     {{template "shared_footer" .}}
 </body>
 

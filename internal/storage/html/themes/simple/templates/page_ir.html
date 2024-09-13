@@ -4,7 +4,35 @@
 
 {{template "shared_head" .}}
 
-<body>
+<body style="width:960px; margin:0 auto;">
+    <header class="container">
+        {{template "shared_nav" .}}
+    </header>
+    <main class="container">
+        <br />
+        <h1 style="text-align: center;" class="text-{{ .Impact }}">{{.Title}}</h1>
+        <br />
+        {{ if .EndTS.IsZero }}
+        <article class="incident-ongoing-{{ .Impact }}">
+            <i class="ph-bold ph-warning-circle"></i> <strong>Incident ongoing</strong>
+        </article>
+        {{ else }}
+        <article class="incident-resolved">
+            <i class="ph-bold ph-check"></i> <strong>Incident resolved in {{ .Duration }}</strong>
+        </article>
+        {{ end }}
+        <br />
+        {{ range .Timeline }}
+        <blockquote>
+            <h4> {{ .Kind | title }} </h4>
+            {{ .Detail }}
+            <footer>
+                <cite x-init="renderTSUnixPrettyNoYear($el)">{{ .TS | unixEpoch }}</cite>
+            </footer>
+        </blockquote>
+        <hr />
+        {{ end }} 
+    </main>
     {{template "shared_footer" .}}
 </body>
 
