@@ -144,7 +144,7 @@ func newStatusPageRepository(componentsRawJSON string, incidentsRawJSON string) 
 
 		// Set end date (for us resolved) if resolved.
 		var end time.Time
-		if ir.Status == "resolved" {
+		if ir.Status == "resolved" || !ir.ResolvedAt.IsZero() {
 			end = ir.ResolvedAt
 		}
 

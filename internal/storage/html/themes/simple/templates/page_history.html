@@ -5,6 +5,44 @@
 {{template "shared_head" .}}
 
 <body>
+    <body style="width:960px; margin:0 auto;">
+        <header class="container-fluid">
+            {{template "shared_nav" .}}
+        </header>
+        <main class="container-fluid">
+            <br />
+            <h1>Incident History</h1>
+            {{ range .Incidents }}
+            <article>
+                <header>
+                    <h4><a href="{{ .URL }}" class="incident-title-{{.Impact}}"> {{ .Title }}</a></h4>
+                </header>
+                {{ .LatestUpdate }}
+                <footer>
+                    <small>
+                        {{ if .EndTS.IsZero }}
+                            <span x-init="renderTSUnixPrettyNoYear($el)">{{ .StartTS | unixEpoch }}</span>
+                            <mark class="unresolved">Ongoing</mark>
+                        {{ else }}
+                            <span x-init="renderTSUnixPrettyNoYear($el)">{{ .StartTS | unixEpoch }}</span> - <span x-init="renderTSUnixPrettyNoYear($el)">{{ .EndTS | unixEpoch }}</span>
+                            <mark class="resolved">Resolved</mark>
+                        {{ end }}
+                    </small>
+                </footer>
+            </article>
+            {{ end }}
+            <section>
+                {{ if .PreviousURL }}
+                    <a href="{{ .PreviousURL }}" role="button"> ⮜ Previous </a>
+                {{ end }}
+                {{ if .NextURL }}
+                    <span class="move-right">
+                        <a href="{{ .NextURL }}" role="button"> Next ⮞ </a>
+                    </span>
+                {{ end}}
+            </section>
+        </main>
+    </body>
     {{template "shared_footer" .}}
 </body>
 
