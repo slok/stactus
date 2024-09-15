@@ -49,7 +49,7 @@ func NewRootCommand(app *kingpin.Application) *RootCommand {
 	app.Flag("no-log", "Disable logger.").BoolVar(&c.NoLog)
 	app.Flag("no-color", "Disable logger color.").BoolVar(&c.NoColor)
 	app.Flag("logger", "Selects the logger type.").Default(LoggerTypeDefault).EnumVar(&c.LoggerType, LoggerTypeDefault, LoggerTypeJSON)
-	app.Flag("shutdown-wait-duration", "After the graceful shutdown, the duration that the app will wait before exiting (e.g: Used to give time to external components like network, to update).").Default("5s").DurationVar(&c.ShutdownWaitDuration)
+	app.Flag("shutdown-wait-duration", "After the graceful shutdown, the duration that the app will wait before exiting (e.g: Used to give time to external components like network, to update).").Default("0s").DurationVar(&c.ShutdownWaitDuration)
 
 	return c
 }
