@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+	"sort"
 	"time"
 )
 
@@ -35,4 +37,32 @@ type IncidentReportEvent struct {
 	Description string
 	Kind        IncidentUpdateKind
 	TS          time.Time
+}
+
+func (i *IncidentReport) Validate() error {
+	if len(i.Timeline) == 0 {
+		return fmt.Errorf("timeline is required")
+	}
+
+	if i.ID == "" {
+		return fmt.Errorf("id is required")
+	}
+
+	if i.Name == "" {
+		return fmt.Errorf("name is required")
+	}
+
+	// Sort desc in the event TS.
+	sort.SliceStable(i.Timeline, func(ii, jj int) bool { return i.Timeline[ii].TS.After(i.Timeline[jj].TS) })
+
+	// Set the end of the incident to the resolved event (if we have it).
+	if i.Timeline[0].Kind == IncidentUpdateKindResolved {
+		i.End = i.Timeline[0].TS
+	}
+
+	// Set investigating to the first event and the start of the incident.
+	i.Timeline[len(i.Timeline)-1].Kind = IncidentUpdateKindInvestigating
+	i.Start = i.Timeline[len(i.Timeline)-1].TS
+
+	return nil
 }
