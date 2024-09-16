@@ -27,11 +27,13 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	// Setup commands (registers flags).
 	generateCmd := commands.NewGeneretaCommand(rootCmd, app)
 	showcaseCmd := commands.NewShowcaseCommand(rootCmd, app)
+	serveCmd := commands.NewServeCommand(rootCmd, app)
 	versionCmd := commands.NewVersionCommand(rootCmd, app)
 
 	cmds := map[string]commands.Command{
 		generateCmd.Name(): generateCmd,
 		showcaseCmd.Name(): showcaseCmd,
+		serveCmd.Name():    serveCmd,
 		versionCmd.Name():  versionCmd,
 	}
 

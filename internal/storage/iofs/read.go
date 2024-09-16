@@ -46,12 +46,12 @@ func NewReadRepository(ctx context.Context, config ReadRepositoryConfig) (*ReadR
 
 	r := &ReadRepository{}
 
-	incidents, err := r.loadIncidents(ctx, config.IncidentsFS)
+	incidents, err := r.loadIncidents(config.IncidentsFS)
 	if err != nil {
 		return nil, fmt.Errorf("could not load incidents: %w", err)
 	}
 
-	systems, err := r.loadSystems(ctx, config.StactusFileData)
+	systems, err := r.loadSystems(config.StactusFileData)
 	if err != nil {
 		return nil, fmt.Errorf("could not load systems: %w", err)
 	}
@@ -61,7 +61,7 @@ func NewReadRepository(ctx context.Context, config ReadRepositoryConfig) (*ReadR
 	return r, nil
 }
 
-func (r ReadRepository) loadSystems(ctx context.Context, data string) ([]model.System, error) {
+func (r ReadRepository) loadSystems(data string) ([]model.System, error) {
 	spec := apiv1.StactusV1{}
 	err := yaml.Unmarshal([]byte(data), &spec)
 	if err != nil {
@@ -94,7 +94,7 @@ func (r ReadRepository) loadSystems(ctx context.Context, data string) ([]model.S
 	return systems, nil
 }
 
-func (r ReadRepository) loadIncidents(ctx context.Context, incidentFS fs.FS) ([]model.IncidentReport, error) {
+func (r ReadRepository) loadIncidents(incidentFS fs.FS) ([]model.IncidentReport, error) {
 	incidents := []model.IncidentReport{}
 
 	err := fs.WalkDir(incidentFS, ".", func(path string, info fs.DirEntry, err error) error {
@@ -113,7 +113,7 @@ func (r ReadRepository) loadIncidents(ctx context.Context, incidentFS fs.FS) ([]
 			return fmt.Errorf("could not read manifest %s: %w", path, err)
 		}
 
-		is, err := r.loadIncident(ctx, rawData)
+		is, err := r.loadIncident(rawData)
 		if err != nil {
 			return fmt.Errorf("could not load incidents in %q: %w", path, err)
 		}
@@ -129,7 +129,7 @@ func (r ReadRepository) loadIncidents(ctx context.Context, incidentFS fs.FS) ([]
 	return incidents, nil
 }
 
-func (r ReadRepository) loadIncident(ctx context.Context, data []byte) ([]model.IncidentReport, error) {
+func (r ReadRepository) loadIncident(data []byte) ([]model.IncidentReport, error) {
 	// In case we have multiple YAML in a single file.
 	models := []model.IncidentReport{}
 	for _, rawData := range splitYAML(data) {
