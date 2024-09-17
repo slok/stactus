@@ -1,10 +1,11 @@
-package dev
+package atlassianstatuspage
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -49,13 +50,17 @@ func NewStatusPageRepository(url string) (*storagememory.Repository, error) {
 	}
 	incidentsRawJSON := string(d)
 
-	return newStatusPageRepository(componentsRawJSON, incidentsRawJSON)
+	return NewJSONStatusPageRepository(componentsRawJSON, incidentsRawJSON)
 }
 
-// newStatusPageRepository knows how to map Atlassian status page API components/incidents into stactus model, helpful for development.
-func newStatusPageRepository(componentsRawJSON string, incidentsRawJSON string) (*storagememory.Repository, error) {
+// NewJSONStatusPageRepository knows how to map Atlassian status page API components/incidents into stactus model, helpful for development.
+func NewJSONStatusPageRepository(componentsRawJSON string, incidentsRawJSON string) (*storagememory.Repository, error) {
 	// Map systems (components).
 	jsonComponents := struct {
+		Page struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"page"`
 		Components []struct {
 			ID          string `json:"id"`
 			Name        string `json:"name"`
@@ -95,11 +100,17 @@ func newStatusPageRepository(componentsRawJSON string, incidentsRawJSON string) 
 			name = fmt.Sprintf("%s / %s", groupName, name)
 		}
 
-		systems = append(systems, model.System{
+		s := model.System{
 			ID:          comp.ID,
 			Name:        name,
 			Description: comp.Description,
-		})
+		}
+		err = s.Validate()
+		if err != nil {
+			return nil, fmt.Errorf("invalid system: %w", err)
+		}
+
+		systems = append(systems, s)
 	}
 
 	// Map IRs.
@@ -142,24 +153,31 @@ func newStatusPageRepository(componentsRawJSON string, incidentsRawJSON string) 
 			})
 		}
 
-		// Set end date (for us resolved) if resolved.
-		var end time.Time
-		if ir.Status == "resolved" || !ir.ResolvedAt.IsZero() {
-			end = ir.ResolvedAt
-		}
-
-		irs = append(irs, model.IncidentReport{
+		ir := model.IncidentReport{
 			ID:        ir.ID,
 			Name:      ir.Name,
-			Start:     ir.CreatedAt,
-			End:       end,
 			Impact:    mapStatusPageImpactToModel(ir.Impact),
 			SystemIDs: componets,
 			Timeline:  timeline,
-		})
+		}
+		err = ir.Validate()
+		if err != nil {
+			return nil, fmt.Errorf("invalid incident report: %w", err)
+		}
+
+		irs = append(irs, ir)
 	}
 
-	memRepo := storagememory.NewRepository(systems, irs)
+	// Sort by incident by latest created.
+	sort.SliceStable(irs, func(i, j int) bool { return irs[i].Start.After(irs[j].Start) })
+
+	settings := model.StatusPageSettings{Name: jsonComponents.Page.Name, URL: jsonComponents.Page.URL}
+	err = settings.Validate()
+	if err != nil {
+		return nil, fmt.Errorf("invalid settings: %w", err)
+	}
+
+	memRepo := storagememory.NewRepository(systems, settings, irs)
 
 	return &memRepo, nil
 }

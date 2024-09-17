@@ -44,7 +44,7 @@ func NewGeneretaCommand(rootConfig *RootCommand, app *kingpin.Application) *Gene
 
 	cmd.Flag("stactus-file", "The path ot the stactus file.").Short('i').Default("./stactus.yaml").StringVar(&c.stactusFilePath)
 	cmd.Flag("out", "The directory where all the generated files will be written.").Short('o').Default("./out").StringVar(&c.outPath)
-	cmd.Flag("site-url", "The site base url.").Default("").StringVar(&c.siteURL)
+	cmd.Flag("site-url", "The site base url, if set it will override the one on the stactus configuration.").Default("").StringVar(&c.siteURL)
 	cmd.Flag("dev-fixtures", "If enabled it will load development fixtures.").BoolVar(&c.devFixtures)
 	cmd.Flag("theme", "Select the theme to render").Default(themeSimple).EnumVar(&c.theme, themeBase, themeSimple)
 
@@ -89,18 +89,14 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 
 		repo.SystemGetter = roRepo
 		repo.IncidentReportGetter = roRepo
+		repo.StatusPageSettingsGetter = roRepo
 	}
 
 	switch c.theme {
 	case themeBase:
 		repo.UICreator, err = htmlbase.NewGenerator(htmlbase.GeneratorConfig{
 			OutPath: c.outPath,
-			SiteURL: c.siteURL,
 			Logger:  logger,
-			ThemeCustomization: htmlbase.ThemeCustomization{
-				BrandTitle: "Stactus",
-				BrandURL:   "https://github.com/slok/stactus",
-			},
 		})
 		if err != nil {
 			return fmt.Errorf("could not create html generator: %w", err)
@@ -108,12 +104,7 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 	case themeSimple:
 		repo.UICreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
 			OutPath: c.outPath,
-			SiteURL: c.siteURL,
 			Logger:  logger,
-			ThemeCustomization: htmlsimple.ThemeCustomization{
-				BrandTitle: "Stactus",
-				BrandURL:   "https://github.com/slok/stactus",
-			},
 		})
 		if err != nil {
 			return fmt.Errorf("could not create html generator: %w", err)
@@ -142,10 +133,11 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 	// Upper layer context handler.
 	{
 		genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-			SystemGetter: repo,
-			IRGetter:     repo,
-			UICreator:    repo,
-			Logger:       logger,
+			SettingsGetter: repo,
+			SystemGetter:   repo,
+			IRGetter:       repo,
+			UICreator:      repo,
+			Logger:         logger,
 		})
 		if err != nil {
 			return fmt.Errorf("could not create generation service: %w", err)
@@ -153,7 +145,7 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 
 		g.Add(
 			func() error {
-				_, err := genService.Generate(ctx, appgenerate.GenerateReq{})
+				_, err := genService.Generate(ctx, appgenerate.GenerateReq{OverrideSiteURL: c.siteURL})
 				if err != nil {
 					return fmt.Errorf("generation failed: %w", err)
 				}
@@ -169,6 +161,7 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 
 // unifiedRepository is a helper type to manage all repository as a single instance.
 type unifiedRepository struct {
+	storage.StatusPageSettingsGetter
 	storage.SystemGetter
 	storage.IncidentReportGetter
 	storage.UICreator

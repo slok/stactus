@@ -2,56 +2,33 @@ package memory
 
 import (
 	"context"
-	"sort"
+	"slices"
 
 	"github.com/slok/stactus/internal/model"
 )
 
 type Repository struct {
-	systemsByID         map[string]model.System
-	incidentReportsByID map[string]model.IncidentReport
+	settings        model.StatusPageSettings
+	systems         []model.System
+	incidentReports []model.IncidentReport
 }
 
-func NewRepository(systems []model.System, incidentReports []model.IncidentReport) Repository {
-	systemsByID := map[string]model.System{}
-	for _, s := range systems {
-		systemsByID[s.ID] = s
-	}
-
-	irByID := map[string]model.IncidentReport{}
-	for _, ir := range incidentReports {
-		irByID[ir.ID] = ir
-	}
-
+func NewRepository(systems []model.System, settings model.StatusPageSettings, incidentReports []model.IncidentReport) Repository {
 	return Repository{
-		systemsByID:         systemsByID,
-		incidentReportsByID: irByID,
+		settings:        settings,
+		systems:         slices.Clone(systems),
+		incidentReports: slices.Clone(incidentReports),
 	}
+}
+
+func (r Repository) GetStatusPageSettings(ctx context.Context) (*model.StatusPageSettings, error) {
+	return &r.settings, nil
 }
 
 func (r Repository) ListAllSystems(ctx context.Context) ([]model.System, error) {
-	ss := []model.System{}
-	for _, s := range r.systemsByID {
-		ss = append(ss, s)
-	}
-
-	// Sort by name.
-	sort.SliceStable(ss, func(i, j int) bool { return ss[i].Name < ss[j].Name })
-
-	return ss, nil
+	return slices.Clone(r.systems), nil
 }
 
 func (r Repository) ListAllIncidentReports(ctx context.Context) ([]model.IncidentReport, error) {
-	irs := []model.IncidentReport{}
-	for _, ir := range r.incidentReportsByID {
-		// Sort ir details by last updated.
-		sort.SliceStable(ir.Timeline, func(i, j int) bool { return ir.Timeline[i].TS.After(ir.Timeline[j].TS) })
-
-		irs = append(irs, ir)
-	}
-
-	// Sort Latest created.
-	sort.SliceStable(irs, func(i, j int) bool { return irs[i].Start.After(irs[j].Start) })
-
-	return irs, nil
+	return slices.Clone(r.incidentReports), nil
 }

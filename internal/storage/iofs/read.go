@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -51,25 +52,25 @@ func NewReadRepository(ctx context.Context, config ReadRepositoryConfig) (*ReadR
 		return nil, fmt.Errorf("could not load incidents: %w", err)
 	}
 
-	systems, err := r.loadSystems(config.StactusFileData)
+	systems, settings, err := r.loadSystemsAndSettings(config.StactusFileData)
 	if err != nil {
 		return nil, fmt.Errorf("could not load systems: %w", err)
 	}
 
-	r.Repository = memory.NewRepository(systems, incidents)
+	r.Repository = memory.NewRepository(systems, *settings, incidents)
 
 	return r, nil
 }
 
-func (r ReadRepository) loadSystems(data string) ([]model.System, error) {
+func (r ReadRepository) loadSystemsAndSettings(data string) ([]model.System, *model.StatusPageSettings, error) {
 	spec := apiv1.StactusV1{}
 	err := yaml.Unmarshal([]byte(data), &spec)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshall YAML systems file correctly: %w", err)
+		return nil, nil, fmt.Errorf("could not unmarshall YAML systems file correctly: %w", err)
 	}
 
 	if spec.Version != apiv1.StactusVersionV1 {
-		return nil, fmt.Errorf("unsupported stactus API version")
+		return nil, nil, fmt.Errorf("unsupported stactus API version")
 	}
 
 	systems := []model.System{}
@@ -82,16 +83,26 @@ func (r ReadRepository) loadSystems(data string) ([]model.System, error) {
 
 		err := s.Validate()
 		if err != nil {
-			return nil, fmt.Errorf("invalid system: %w", err)
+			return nil, nil, fmt.Errorf("invalid system: %w", err)
 		}
 		systems = append(systems, s)
 	}
 
 	if len(systems) == 0 {
-		return nil, fmt.Errorf("at least 1 system is required")
+		return nil, nil, fmt.Errorf("at least 1 system is required")
 	}
 
-	return systems, nil
+	settings := &model.StatusPageSettings{
+		Name: spec.Name,
+		URL:  spec.URL,
+	}
+
+	err = settings.Validate()
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid settings: %w", err)
+	}
+
+	return systems, settings, nil
 }
 
 func (r ReadRepository) loadIncidents(incidentFS fs.FS) ([]model.IncidentReport, error) {
@@ -125,6 +136,9 @@ func (r ReadRepository) loadIncidents(incidentFS fs.FS) ([]model.IncidentReport,
 	if err != nil {
 		return nil, fmt.Errorf("could not walk directory: %w", err)
 	}
+
+	// Sort by incident by latest created.
+	sort.SliceStable(incidents, func(i, j int) bool { return incidents[i].Start.After(incidents[j].Start) })
 
 	return incidents, nil
 }
@@ -226,10 +240,10 @@ func mapTimeline(tl []apiv1.IncidentV1TimelineEvent) ([]model.IncidentReportEven
 
 func mapEventKind(e apiv1.IncidentV1TimelineEvent) model.IncidentUpdateKind {
 	switch {
-	case e.Investigating:
-		return model.IncidentUpdateKindInvestigating
 	case e.Resolved:
 		return model.IncidentUpdateKindResolved
+	case e.Investigating:
+		return model.IncidentUpdateKindInvestigating
 	default:
 		return model.IncidentUpdateKindUpdate
 	}

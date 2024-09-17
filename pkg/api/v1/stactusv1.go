@@ -5,14 +5,14 @@ const (
 )
 
 type StactusV1 struct {
-	Version   string            `yaml:"version"`
-	BrandName string            `yaml:"brandName"`
-	BrandURL  string            `yaml:"brandURL"`
-	Systems   []StactusV1System `yaml:"systems"`
+	Version string            `yaml:"version"`
+	Name    string            `yaml:"name"`
+	URL     string            `yaml:"url"`
+	Systems []StactusV1System `yaml:"systems"`
 }
 
 type StactusV1System struct {
 	ID          string `yaml:"id"`
 	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
+	Description string `yaml:"description,omitempty"`
 }

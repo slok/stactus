@@ -23,11 +23,13 @@ func TestCreateUI(t *testing.T) {
 		expErr             bool
 	}{
 		"The static files have been rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
+			themeCustomization: simple.ThemeCustomization{},
+			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 			},
-			ui: model.UI{},
 			expectHTML: map[string][]string{
 				"./static/main.css": {},
 				"./static/main.js":  {},
@@ -35,26 +37,29 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"The nav should be rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
+			themeCustomization: simple.ThemeCustomization{},
+			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 			},
-			ui: model.UI{},
 			expectHTML: map[string][]string{
 				"./index.html": {
 					`<h2>MonkeyIsland status </h2>`,
-					`<li><a href="/history/0">History</a></li>`,
-					`<li><a href="/">Status</a></li>`,
+					`<li><a href="https://monkeyisland.slok.dev/history/0">History</a></li>`,
+					`<li><a href="https://monkeyisland.slok.dev/">Status</a></li>`,
 				},
 			},
 		},
 
 		"If all systems are ok it should be reflected.": {
-			themeCustomization: simple.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
-			},
+			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				SystemDetails: []model.SystemDetails{
 					{
 						System: model.System{ID: "test1", Name: "Test 1", Description: "Something test 1"},
@@ -82,11 +87,12 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"If any systems is not ok it should be reflected.": {
-			themeCustomization: simple.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
-			},
+			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				OpenedIRs: []*model.IncidentReport{
 					{
 						ID:        "ir42",
@@ -129,16 +135,16 @@ func TestCreateUI(t *testing.T) {
 			expectHTML: map[string][]string{
 				"./index.html": {
 					// Ongoing incident 1 info.
-					`<article class="box-impact-critical"> <header class="header-impact-critical">`,                   // We have the impact.
-					`<h4><a href="/ir/ir42" class="incident-title"> Oh snap!</a></h4>`,                                // We have the title and link
-					`<p>There is a problem 3</p>`,                                                                     // Regular plain description.
+					`<article class="box-impact-critical"> <header class="header-impact-critical">`,                 // We have the impact.
+					`<h4><a href="https://monkeyisland.slok.dev/ir/ir42" class="incident-title"> Oh snap!</a></h4>`, // We have the title and link
+					`<p>There is a problem 3</p>`, // Regular plain description.
 					`<small>Latest update at <span x-init="renderTSUnixPrettyNoYear($el)">-1815344697</span></small>`, // TS set for client JS libs.
 
 					// Ongoing incident 2 info.
-					`<article class="box-impact-major"> <header class="header-impact-major">`,                         // We have the impact.
-					`<h4><a href="/ir/ir99" class="incident-title"> fuuuuuuuuuuu</a></h4>`,                            // We have the title and link
-					`<p>something <strong>something</strong> 9</p>`,                                                   //  Markdown description.
-					`<small>Latest update at <span x-init="renderTSUnixPrettyNoYear($el)">-1815334737</span></small>`, // TS set for client JS libs.
+					`<article class="box-impact-major"> <header class="header-impact-major">`,                           // We have the impact.
+					`<h4><a href="https://monkeyisland.slok.dev/ir/ir99" class="incident-title"> fuuuuuuuuuuu</a></h4>`, // We have the title and link
+					`<p>something <strong>something</strong> 9</p>`,                                                     //  Markdown description.
+					`<small>Latest update at <span x-init="renderTSUnixPrettyNoYear($el)">-1815334737</span></small>`,   // TS set for client JS libs.
 
 					// Systems status.
 					`<article> Test 1 <span data-tooltip="Something test 1"><i class="ph-thin ph-question"></i></span><span class="move-right"> <i style="font-size: 150%;" class="ph-fill ph-check-circle text-ok"></i> </span><div> <small> Normal </small> </div> </article>`,
@@ -150,11 +156,13 @@ func TestCreateUI(t *testing.T) {
 
 		"History pagination should be rendered correctly.": {
 			themeCustomization: simple.ThemeCustomization{
-				BrandTitle:       "MonkeyIsland",
-				BrandURL:         "https://monkeyisland.slok.dev",
 				HistoryIRPerPage: 2,
 			},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				SystemDetails: []model.SystemDetails{
 					{System: model.System{ID: "test1", Name: "Test 1", Description: "Something test 1"}},
 				},
@@ -204,19 +212,19 @@ func TestCreateUI(t *testing.T) {
 					`<h1>Incident History</h1> `, // We have the title.
 
 					// Incident 1.
-					`<h4><a href="/ir/ir-1" class="incident-title-major"> Incident report 1</a>`, // We have the title with impact an details URL.
+					`<h4><a href="https://monkeyisland.slok.dev/ir/ir-1" class="incident-title-major"> Incident report 1</a>`, // We have the title with impact an details URL.
 					`<p>Some detail 11</p>`, // We have plain text details.
 					`<span x-init="renderTSUnixPrettyNoYear($el)">-1815346677</span> - <span x-init="renderTSUnixPrettyNoYear($el)">-1815339477</span>`, // Start and end TS.
 					`<mark class="resolved">Resolved</mark>`, // Resolved mark.
 
 					// Incident 2.
-					`<h4><a href="/ir/ir-2" class="incident-title-critical"> Incident report 2</a></h4>`,
+					`<h4><a href="https://monkeyisland.slok.dev/ir/ir-2" class="incident-title-critical"> Incident report 2</a></h4>`,
 					`<p>Some <strong>detail</strong> 12</p>`,                          // We have markdown details.
 					`<span x-init="renderTSUnixPrettyNoYear($el)">-1815310677</span>`, // Start.
 					`<mark class="unresolved">Ongoing</mark>`,                         // Unresolved mark.
 
 					// Pagination.
-					`<a href="/history/1" role="button"> ⮜ Previous </a>`,
+					`<a href="https://monkeyisland.slok.dev/history/1" role="button"> ⮜ Previous </a>`,
 				},
 
 				"./history/1.html": {
@@ -226,23 +234,24 @@ func TestCreateUI(t *testing.T) {
 					`<h1>Incident History</h1> `, // We have the title.
 
 					// Incident 3.
-					`<h4><a href="/ir/ir-3" class="incident-title-minor"> Incident report 3</a></h4>`, // We have the title with impact an details URL.
+					`<h4><a href="https://monkeyisland.slok.dev/ir/ir-3" class="incident-title-minor"> Incident report 3</a></h4>`, // We have the title with impact an details URL.
 					`<p>Some detail 13</p>`, // We have plain text details.
 					`<span x-init="renderTSUnixPrettyNoYear($el)">-1815274677</span> - <span x-init="renderTSUnixPrettyNoYear($el)">-1815256677</span>`, // Start and end TS.
 					`<mark class="resolved">Resolved</mark>`, // Resolved mark.
 
 					// Pagination.
-					`<a href="/history/0" role="button"> Next ⮞ </a> </span>`,
+					`<a href="https://monkeyisland.slok.dev/history/0" role="button"> Next ⮞ </a> </span>`,
 				},
 			},
 		},
 
 		"IR details should be rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
-			},
+			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				History: []*model.IncidentReport{
 					{
 						ID:        "1234567890",

@@ -17,6 +17,8 @@ import (
 var (
 	testStatusFile = `
 version: stactus/v1
+name: SomethingIO
+url: https://something.test.test.somethingdsadsadsad.com
 systems:
   - id: system1
     name: System 1
@@ -29,6 +31,8 @@ systems:
 		{ID: "system1", Name: "System 1", Description: "This is a description of system1"},
 		{ID: "system2", Name: "System 2", Description: "This is a description of system2"},
 	}
+
+	testSettings = model.StatusPageSettings{Name: "SomethingIO", URL: "https://something.test.test.somethingdsadsadsad.com"}
 )
 
 func getIRForTSFormats(ts1, ts2 string) []byte {
@@ -40,6 +44,7 @@ impact: minor
 systems: ["system1"]
 timeline:
   - ts: %s
+    investigating: true
     description: ts1
 
   - ts: %s
@@ -66,6 +71,7 @@ func TestReadRepository(t *testing.T) {
 	tests := map[string]struct {
 		fs          func() fs.FS
 		stactusFile string
+		expSettings model.StatusPageSettings
 		expSystems  []model.System
 		expIRs      []model.IncidentReport
 		expErr      bool
@@ -73,6 +79,7 @@ func TestReadRepository(t *testing.T) {
 		"An empty stactus file should fail.": {
 			fs:          func() fs.FS { return fstest.MapFS{} },
 			stactusFile: "",
+			expSettings: model.StatusPageSettings{},
 			expSystems:  []model.System{},
 			expIRs:      []model.IncidentReport{},
 			expErr:      true,
@@ -86,9 +93,10 @@ func TestReadRepository(t *testing.T) {
 			expErr:      true,
 		},
 
-		"A correct stactus file should return the systems.": {
+		"A correct stactus file should return the systems and settings.": {
 			fs:          func() fs.FS { return fstest.MapFS{} },
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expIRs:      []model.IncidentReport{},
 		},
@@ -104,6 +112,7 @@ impact: minor
 systems: ["system1"]
 timeline:
   - ts: 2024/09/13 05:42
+    investigating: true
     description: desc 1
 
   - ts: 2024/09/13 05:48
@@ -116,6 +125,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expIRs: []model.IncidentReport{
 				{ID: "test-0001", Name: "incident 1", SystemIDs: []string{"system1"}, Impact: "minor",
@@ -137,6 +147,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expIRs:      []model.IncidentReport{getIRForTSFormatsResult(t0, t1)},
 		},
@@ -148,6 +159,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expIRs:      []model.IncidentReport{getIRForTSFormatsResult(t0, t1)},
 		},
@@ -159,6 +171,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expIRs:      []model.IncidentReport{getIRForTSFormatsResult(t0, t1)},
 		},
@@ -170,6 +183,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expErr:      true,
 		},
@@ -181,6 +195,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expErr:      true,
 		},
@@ -192,6 +207,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expIRs:      []model.IncidentReport{getIRForTSFormatsResult(t0, t1)},
 		},
@@ -203,6 +219,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expErr:      true,
 		},
@@ -214,6 +231,7 @@ timeline:
 				return fs
 			},
 			stactusFile: testStatusFile,
+			expSettings: testSettings,
 			expSystems:  testSystems,
 			expErr:      true,
 		},
@@ -230,6 +248,8 @@ timeline:
 			if test.expErr {
 				assert.Error(err)
 			} else if assert.NoError(err) {
+				gotSettings, _ := repo.GetStatusPageSettings(context.TODO())
+				assert.Equal(test.expSettings, *gotSettings)
 				gotSystems, _ := repo.ListAllSystems(context.TODO())
 				assert.Equal(test.expSystems, gotSystems)
 				gotIRs, _ := repo.ListAllIncidentReports(context.TODO())

@@ -16,6 +16,6 @@ type IncidentV1 struct {
 type IncidentV1TimelineEvent struct {
 	TS            string `yaml:"ts"`
 	Description   string `yaml:"description"`
-	Investigating bool   `yaml:"investigating"`
-	Resolved      bool   `yaml:"resolved"`
+	Investigating bool   `yaml:"investigating,omitempty"`
+	Resolved      bool   `yaml:"resolved,omitempty"`
 }

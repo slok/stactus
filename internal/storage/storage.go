@@ -6,6 +6,12 @@ import (
 	"github.com/slok/stactus/internal/model"
 )
 
+type StatusPageSettingsGetter interface {
+	GetStatusPageSettings(ctx context.Context) (*model.StatusPageSettings, error)
+}
+
+//go:generate mockery --case underscore --output storagemock --outpkg storagemock --name StatusPageSettingsGetter
+
 type SystemGetter interface {
 	ListAllSystems(ctx context.Context) ([]model.System, error)
 }

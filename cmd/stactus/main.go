@@ -28,13 +28,17 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	generateCmd := commands.NewGeneretaCommand(rootCmd, app)
 	showcaseCmd := commands.NewShowcaseCommand(rootCmd, app)
 	serveCmd := commands.NewServeCommand(rootCmd, app)
+	migrateCmd := commands.NewMigrateCommand(app)
+	migrateStatusPageCmd := commands.NewMigrateStatusPageCommand(rootCmd, migrateCmd)
 	versionCmd := commands.NewVersionCommand(rootCmd, app)
 
 	cmds := map[string]commands.Command{
-		generateCmd.Name(): generateCmd,
-		showcaseCmd.Name(): showcaseCmd,
-		serveCmd.Name():    serveCmd,
-		versionCmd.Name():  versionCmd,
+		generateCmd.Name():          generateCmd,
+		showcaseCmd.Name():          showcaseCmd,
+		serveCmd.Name():             serveCmd,
+		migrateCmd.Name():           migrateCmd,
+		migrateStatusPageCmd.Name(): migrateStatusPageCmd,
+		versionCmd.Name():           versionCmd,
 	}
 
 	// Parse commandline.
