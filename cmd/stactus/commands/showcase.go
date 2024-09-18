@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/oklog/run"
 	"golang.org/x/sync/errgroup"
 
 	appgenerate "github.com/slok/stactus/internal/app/generate"
-	"github.com/slok/stactus/internal/dev"
 	"github.com/slok/stactus/internal/storage"
+	"github.com/slok/stactus/internal/storage/atlassianstatuspage"
 	htmlbase "github.com/slok/stactus/internal/storage/html/themes/base"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 )
@@ -32,7 +33,7 @@ func NewShowcaseCommand(rootConfig *RootCommand, app *kingpin.Application) *Show
 		rootConfig: rootConfig,
 	}
 
-	cmd.Flag("out", "The directory where all the generated files will be written.").Default("./out").StringVar(&c.outPath)
+	cmd.Flag("out", "The directory where all the generated files will be written.").Default("./out").Short('o').StringVar(&c.outPath)
 	cmd.Flag("site-url", "The site base url.").Default("").StringVar(&c.siteURL)
 
 	return c
@@ -113,6 +114,11 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 				}
 			}
 
+			err = os.MkdirAll(filepath.Dir(indexFile), os.ModePerm)
+			if err != nil {
+				return fmt.Errorf("could not create index directory: %w", err)
+			}
+
 			err := os.WriteFile(indexFile, []byte(`<html>
 				<head><title>Stactus showcase</title></head>
 				<body>
@@ -135,7 +141,7 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 					logger.Infof("Generating %s example", client.Name)
 
 					// Setup repositories.
-					devRepo, err := dev.NewStatusPageRepository(client.URL)
+					devRepo, err := atlassianstatuspage.NewStatusPageRepository(client.URL)
 					if err != nil {
 						return fmt.Errorf("could not create repository: %w", err)
 					}
@@ -150,12 +156,7 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 						case themeBase:
 							uiCreator, err = htmlbase.NewGenerator(htmlbase.GeneratorConfig{
 								OutPath: outPath,
-								SiteURL: siteURL,
 								Logger:  logger,
-								ThemeCustomization: htmlbase.ThemeCustomization{
-									BrandTitle: client.Name,
-									BrandURL:   client.URL,
-								},
 							})
 							if err != nil {
 								return fmt.Errorf("could not create HTML generator: %w", err)
@@ -164,12 +165,7 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 						case themeSimple:
 							uiCreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
 								OutPath: outPath,
-								SiteURL: siteURL,
 								Logger:  logger,
-								ThemeCustomization: htmlsimple.ThemeCustomization{
-									BrandTitle: client.Name,
-									BrandURL:   client.URL,
-								},
 							})
 							if err != nil {
 								return fmt.Errorf("could not create HTML generator: %w", err)
@@ -178,16 +174,17 @@ func (c *ShowcaseCommand) Run(ctx context.Context) (err error) {
 
 						// Generator service.
 						genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-							SystemGetter: devRepo,
-							IRGetter:     devRepo,
-							UICreator:    uiCreator,
-							Logger:       logger,
+							SettingsGetter: devRepo,
+							SystemGetter:   devRepo,
+							IRGetter:       devRepo,
+							UICreator:      uiCreator,
+							Logger:         logger,
 						})
 						if err != nil {
 							return fmt.Errorf("could not create generation service: %w", err)
 						}
 
-						_, err = genService.Generate(ctx, appgenerate.GenerateReq{})
+						_, err = genService.Generate(ctx, appgenerate.GenerateReq{OverrideSiteURL: siteURL})
 						if err != nil {
 							return fmt.Errorf("generation failed: %w", err)
 						}

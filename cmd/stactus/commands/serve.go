@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"testing/fstest"
 
@@ -24,7 +25,6 @@ type ServeCommand struct {
 	rootConfig *RootCommand
 
 	stactusFilePath string
-	siteURL         string
 	listenAddress   string
 }
 
@@ -37,7 +37,6 @@ func NewServeCommand(rootConfig *RootCommand, app *kingpin.Application) *ServeCo
 	}
 
 	cmd.Flag("stactus-file", "The path ot the stactus file.").Short('i').Default("./stactus.yaml").StringVar(&c.stactusFilePath)
-	cmd.Flag("site-url", "The site base url.").Default("").StringVar(&c.siteURL)
 	cmd.Flag("listen-address", "The address where the server will be listening.").Default(":8080").StringVar(&c.listenAddress)
 
 	return c
@@ -94,34 +93,37 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 			return fmt.Errorf("could not load data: %w", err)
 		}
 
+		repo.StatusPageSettingsGetter = roRepo
 		repo.SystemGetter = roRepo
 		repo.IncidentReportGetter = roRepo
 
 		repo.UICreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
 			FileManager: &memFSFileManager{fs: memFS},
 			OutPath:     "./",
-			SiteURL:     c.siteURL,
 			Logger:      logger,
-			ThemeCustomization: htmlsimple.ThemeCustomization{
-				BrandTitle: "Stactus",
-				BrandURL:   "https://github.com/slok/stactus",
-			},
 		})
 		if err != nil {
 			return fmt.Errorf("could not create html generator: %w", err)
 		}
 
 		genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-			SystemGetter: repo,
-			IRGetter:     repo,
-			UICreator:    repo,
-			Logger:       logger,
+			SettingsGetter: repo,
+			SystemGetter:   repo,
+			IRGetter:       repo,
+			UICreator:      repo,
+			Logger:         logger,
 		})
 		if err != nil {
 			return fmt.Errorf("could not create generation service: %w", err)
 		}
 
-		_, err = genService.Generate(ctx, appgenerate.GenerateReq{})
+		_, portS, _ := strings.Cut(c.listenAddress, ":")
+		if _, err := strconv.Atoi(portS); err != nil {
+			return fmt.Errorf("could not get listen port: %w", err)
+		}
+		address := "http://127.0.0.1:" + portS
+
+		_, err = genService.Generate(ctx, appgenerate.GenerateReq{OverrideSiteURL: address})
 		if err != nil {
 			return fmt.Errorf("generation failed: %w", err)
 		}

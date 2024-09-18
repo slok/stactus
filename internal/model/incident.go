@@ -55,13 +55,15 @@ func (i *IncidentReport) Validate() error {
 	// Sort desc in the event TS.
 	sort.SliceStable(i.Timeline, func(ii, jj int) bool { return i.Timeline[ii].TS.After(i.Timeline[jj].TS) })
 
-	// Set the end of the incident to the resolved event (if we have it).
-	if i.Timeline[0].Kind == IncidentUpdateKindResolved {
-		i.End = i.Timeline[0].TS
+	// Set the end of the incident to the resolved event (if any of the events has the resolved kind).
+	for _, ev := range i.Timeline {
+		if ev.Kind == IncidentUpdateKindResolved {
+			i.End = ev.TS
+			break
+		}
 	}
 
-	// Set investigating to the first event and the start of the incident.
-	i.Timeline[len(i.Timeline)-1].Kind = IncidentUpdateKindInvestigating
+	// Set the start to the first event.
 	i.Start = i.Timeline[len(i.Timeline)-1].TS
 
 	return nil

@@ -19,14 +19,11 @@ var (
 type GeneratorConfig struct {
 	FileManager        util.FileManager
 	OutPath            string
-	SiteURL            string
 	Logger             log.Logger
 	ThemeCustomization ThemeCustomization
 }
 
 type ThemeCustomization struct {
-	BrandTitle       string
-	BrandURL         string
 	HistoryIRPerPage int
 }
 
@@ -44,12 +41,9 @@ func NewGenerator(config GeneratorConfig) (*Generator, error) {
 	gen, err := base.NewGenerator(base.GeneratorConfig{
 		FileManager: config.FileManager,
 		OutPath:     config.OutPath,
-		SiteURL:     config.SiteURL,
 		Logger:      config.Logger,
 		Renderer:    rend,
 		ThemeCustomization: base.ThemeCustomization{
-			BrandTitle:       config.ThemeCustomization.BrandTitle,
-			BrandURL:         config.ThemeCustomization.BrandURL,
 			HistoryIRPerPage: config.ThemeCustomization.HistoryIRPerPage,
 		},
 	})

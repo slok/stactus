@@ -11,14 +11,19 @@ import (
 )
 
 type ServiceConfig struct {
-	SystemGetter storage.SystemGetter
-	IRGetter     storage.IncidentReportGetter
-	UICreator    storage.UICreator
+	SettingsGetter storage.StatusPageSettingsGetter
+	SystemGetter   storage.SystemGetter
+	IRGetter       storage.IncidentReportGetter
+	UICreator      storage.UICreator
 
 	Logger log.Logger
 }
 
 func (c *ServiceConfig) defaults() error {
+	if c.SettingsGetter == nil {
+		return fmt.Errorf("settings getter is required")
+	}
+
 	if c.SystemGetter == nil {
 		return fmt.Errorf("system getter is required")
 	}
@@ -41,10 +46,11 @@ func (c *ServiceConfig) defaults() error {
 }
 
 type Service struct {
-	sysGetter storage.SystemGetter
-	irGetter  storage.IncidentReportGetter
-	uiCreator storage.UICreator
-	logger    log.Logger
+	settingsGetter storage.StatusPageSettingsGetter
+	sysGetter      storage.SystemGetter
+	irGetter       storage.IncidentReportGetter
+	uiCreator      storage.UICreator
+	logger         log.Logger
 }
 
 func NewService(config ServiceConfig) (*Service, error) {
@@ -54,14 +60,17 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}
 
 	return &Service{
-		sysGetter: config.SystemGetter,
-		irGetter:  config.IRGetter,
-		uiCreator: config.UICreator,
-		logger:    config.Logger,
+		settingsGetter: config.SettingsGetter,
+		sysGetter:      config.SystemGetter,
+		irGetter:       config.IRGetter,
+		uiCreator:      config.UICreator,
+		logger:         config.Logger,
 	}, nil
 }
 
-type GenerateReq struct{}
+type GenerateReq struct {
+	OverrideSiteURL string
+}
 
 func (r *GenerateReq) validate() error {
 	return nil
@@ -76,6 +85,14 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 	err := req.validate()
 	if err != nil {
 		return GenerateResp{Message: err.Error()}, internalerrors.ErrNotValid
+	}
+
+	settings, err := s.settingsGetter.GetStatusPageSettings(ctx)
+	if err != nil {
+		return GenerateResp{}, fmt.Errorf("could not get site settings: %w", err)
+	}
+	if req.OverrideSiteURL != "" {
+		settings.URL = req.OverrideSiteURL
 	}
 
 	// Get all systems.
@@ -123,6 +140,7 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 
 	// Generate.
 	ui := model.UI{
+		Settings:      *settings,
 		SystemDetails: systemDetails,
 		History:       history,
 		OpenedIRs:     openedIRs,

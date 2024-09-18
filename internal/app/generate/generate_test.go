@@ -20,14 +20,24 @@ func TestGenerate(t *testing.T) {
 	t0 := time.Now()
 
 	tests := map[string]struct {
-		mock    func(msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator)
+		mock    func(mstg *storagemock.StatusPageSettingsGetter, msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator)
 		req     generate.GenerateReq
 		expResp generate.GenerateResp
 		expErr  bool
 	}{
 
+		"If getting settings returns an error, it should fail.": {
+			mock: func(mstg *storagemock.StatusPageSettingsGetter, msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+				mstg.On("GetStatusPageSettings", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
+			},
+			req:     generate.GenerateReq{},
+			expResp: generate.GenerateResp{},
+			expErr:  true,
+		},
+
 		"If listing systems returns an error, it should fail.": {
-			mock: func(msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+			mock: func(mstg *storagemock.StatusPageSettingsGetter, msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+				mstg.On("GetStatusPageSettings", mock.Anything).Once().Return(&model.StatusPageSettings{Name: "test1", URL: "https://test.io"}, nil)
 				msg.On("ListAllSystems", mock.Anything).Once().Return(nil, fmt.Errorf("something"))
 			},
 			req:     generate.GenerateReq{},
@@ -36,7 +46,8 @@ func TestGenerate(t *testing.T) {
 		},
 
 		"If listing IRs returns an error, it should fail.": {
-			mock: func(msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+			mock: func(mstg *storagemock.StatusPageSettingsGetter, msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+				mstg.On("GetStatusPageSettings", mock.Anything).Once().Return(&model.StatusPageSettings{Name: "test1", URL: "https://test.io"}, nil)
 				msg.On("ListAllSystems", mock.Anything).Once().Return([]model.System{}, nil)
 				mig.On("ListAllIncidentReports", mock.Anything).Return(nil, fmt.Errorf("something"))
 			},
@@ -46,7 +57,8 @@ func TestGenerate(t *testing.T) {
 		},
 
 		"If UI generation returns an error, it should fail.": {
-			mock: func(msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+			mock: func(mstg *storagemock.StatusPageSettingsGetter, msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+				mstg.On("GetStatusPageSettings", mock.Anything).Once().Return(&model.StatusPageSettings{Name: "test1", URL: "https://test.io"}, nil)
 				msg.On("ListAllSystems", mock.Anything).Once().Return([]model.System{}, nil)
 				mig.On("ListAllIncidentReports", mock.Anything).Return([]model.IncidentReport{}, nil)
 				muc.On("CreateUI", mock.Anything, mock.Anything).Once().Return(fmt.Errorf("something"))
@@ -57,7 +69,8 @@ func TestGenerate(t *testing.T) {
 		},
 
 		"Creating the UI correctly should generate the UI (No IRs).": {
-			mock: func(msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+			mock: func(mstg *storagemock.StatusPageSettingsGetter, msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+				mstg.On("GetStatusPageSettings", mock.Anything).Once().Return(&model.StatusPageSettings{Name: "test1", URL: "https://test.io"}, nil)
 				msg.On("ListAllSystems", mock.Anything).Once().Return([]model.System{
 					{ID: "test1", Name: "Test 1", Description: "Something 1"},
 					{ID: "test2", Name: "Test 2", Description: "Something 2"},
@@ -67,6 +80,10 @@ func TestGenerate(t *testing.T) {
 				mig.On("ListAllIncidentReports", mock.Anything).Return([]model.IncidentReport{}, nil)
 
 				exp := model.UI{
+					Settings: model.StatusPageSettings{
+						Name: "test1",
+						URL:  "https://test.io",
+					},
 					OpenedIRs: []*model.IncidentReport{},
 					History:   []*model.IncidentReport{},
 					SystemDetails: []model.SystemDetails{
@@ -88,7 +105,8 @@ func TestGenerate(t *testing.T) {
 		},
 
 		"Creating the UI correctly should generate the UI (service with IRs).": {
-			mock: func(msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+			mock: func(mstg *storagemock.StatusPageSettingsGetter, msg *storagemock.SystemGetter, mig *storagemock.IncidentReportGetter, muc *storagemock.UICreator) {
+				mstg.On("GetStatusPageSettings", mock.Anything).Once().Return(&model.StatusPageSettings{Name: "test1", URL: "https://test.io"}, nil)
 				msg.On("ListAllSystems", mock.Anything).Once().Return([]model.System{
 					{ID: "test1", Name: "Test 1", Description: "Something 1"},
 					{ID: "test2", Name: "Test 2", Description: "Something 2"},
@@ -122,6 +140,10 @@ func TestGenerate(t *testing.T) {
 				}, nil)
 
 				exp := model.UI{
+					Settings: model.StatusPageSettings{
+						Name: "test1",
+						URL:  "https://something-new.io",
+					},
 					OpenedIRs: []*model.IncidentReport{
 						{ID: "ir1", SystemIDs: []string{"test2"}, Name: "IR 1", Start: t0, Timeline: []model.IncidentReportEvent{{Description: "desc1"}}},
 					},
@@ -154,7 +176,7 @@ func TestGenerate(t *testing.T) {
 				}
 				muc.On("CreateUI", mock.Anything, exp).Once().Return(nil)
 			},
-			req:     generate.GenerateReq{},
+			req:     generate.GenerateReq{OverrideSiteURL: "https://something-new.io"},
 			expResp: generate.GenerateResp{},
 		},
 	}
@@ -165,17 +187,19 @@ func TestGenerate(t *testing.T) {
 			require := require.New(t)
 
 			// Mocks.
+			mstg := storagemock.NewStatusPageSettingsGetter(t)
 			msg := storagemock.NewSystemGetter(t)
 			mig := storagemock.NewIncidentReportGetter(t)
 			muc := storagemock.NewUICreator(t)
-			test.mock(msg, mig, muc)
+			test.mock(mstg, msg, mig, muc)
 
 			// Exec.
 			svc, err := generate.NewService(generate.ServiceConfig{
-				SystemGetter: msg,
-				IRGetter:     mig,
-				UICreator:    muc,
-				Logger:       log.Noop,
+				SettingsGetter: mstg,
+				SystemGetter:   msg,
+				IRGetter:       mig,
+				UICreator:      muc,
+				Logger:         log.Noop,
 			})
 			require.NoError(err)
 
@@ -188,6 +212,7 @@ func TestGenerate(t *testing.T) {
 				assert.NoError(err)
 			}
 			assert.Equal(test.expResp, resp)
+			mstg.AssertExpectations(t)
 			msg.AssertExpectations(t)
 			mig.AssertExpectations(t)
 			muc.AssertExpectations(t)

@@ -23,37 +23,42 @@ func TestCreateUI(t *testing.T) {
 		expErr             bool
 	}{
 		"The static files have been rendered correctly.": {
-			themeCustomization: base.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
+			themeCustomization: base.ThemeCustomization{},
+			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 			},
-			ui: model.UI{},
 			expectHTML: map[string][]string{
 				"./static/main.css": {},
 			},
 		},
 
 		"The index dashboard shared components should render correctly.": {
-			themeCustomization: base.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
+			themeCustomization: base.ThemeCustomization{},
+			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 			},
-			ui: model.UI{},
 			expectHTML: map[string][]string{
 				"./index.html": {
-					`<title>MonkeyIsland status</title>`,                                        // We have the title.
-					`<h1> <a href="https://monkeyisland.slok.dev">MonkeyIsland</a> status</h1>`, // We have the brand header.
-					`<a href="/history/0">Incident history</a>`,                                 // We have history pagination.
+					`<title>MonkeyIsland status</title>`,                                     // We have the title.
+					`<h1> MonkeyIsland status</h1>`,                                          // We have the brand header.
+					`<a href="https://monkeyisland.slok.dev/history/0">Incident history</a>`, // We have history pagination.
 				},
 			},
 		},
 
 		"If all systems are ok it should be reflected.": {
-			themeCustomization: base.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
-			},
+			themeCustomization: base.ThemeCustomization{},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				SystemDetails: []model.SystemDetails{
 					{
 						System: model.System{ID: "test1", Name: "Test 1", Description: "Something test 1"},
@@ -77,11 +82,12 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"If any systems is not ok it should be reflected.": {
-			themeCustomization: base.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
-			},
+			themeCustomization: base.ThemeCustomization{},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				OpenedIRs: []*model.IncidentReport{
 					{
 						ID:        "ir42",
@@ -125,13 +131,13 @@ func TestCreateUI(t *testing.T) {
 				"./index.html": {
 					// Ongoing incident 1 info.
 					`<div class="box impact-critical">`,
-					`<h3><a href="/ir/ir42"> Oh snap!</a></h3>`,
+					`<h3><a href="https://monkeyisland.slok.dev/ir/ir42"> Oh snap!</a></h3>`,
 					`<div><p>There is a problem 3</p> </div>`,
 					`<small>Latest update at Jun 23, 01:35</small>`,
 
 					// Ongoing incident 2 info.
 					`<div class="box impact-major">`,
-					`<h3><a href="/ir/ir99"> fuuuuuuuuuuu</a></h3>`,
+					`<h3><a href="https://monkeyisland.slok.dev/ir/ir99"> fuuuuuuuuuuu</a></h3>`,
 					`<div><p>something something 9</p> </div>`,
 					`<small>Latest update at Jun 23, 04:21</small>`,
 
@@ -145,11 +151,13 @@ func TestCreateUI(t *testing.T) {
 
 		"History pagination should be rendered correctly.": {
 			themeCustomization: base.ThemeCustomization{
-				BrandTitle:       "MonkeyIsland",
-				BrandURL:         "https://monkeyisland.slok.dev",
 				HistoryIRPerPage: 2,
 			},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				SystemDetails: []model.SystemDetails{
 					{System: model.System{ID: "test1", Name: "Test 1", Description: "Something test 1"}},
 				},
@@ -198,18 +206,18 @@ func TestCreateUI(t *testing.T) {
 
 					// Incident 1.
 					`<div class="box impact-major">`,
-					`<h2><a href="/ir/ir-1">Incident report 1</a></h2>`,
+					`<h2><a href="https://monkeyisland.slok.dev/ir/ir-1">Incident report 1</a></h2>`,
 					`<p> <p>Some detail 11</p></p>`,
 					`Jun 23, 01:02 - Jun 23, 03:02`,
 
 					// Incident 2.
 					`<div class="box impact-critical">`,
-					`<h2><a href="/ir/ir-2">Incident report 2</a></h2>`,
+					`<h2><a href="https://monkeyisland.slok.dev/ir/ir-2">Incident report 2</a></h2>`,
 					`<p> <p>Some detail 12</p></p>`,
 					`Jun 23, 11:02 - Jun 23, 16:02`,
 
 					// Pagination.
-					`<a href="/history/1"> ⮜ Previous </a>`,
+					`<a href="https://monkeyisland.slok.dev/history/1"> ⮜ Previous </a>`,
 				},
 
 				"./history/1.html": {
@@ -217,22 +225,23 @@ func TestCreateUI(t *testing.T) {
 
 					// Incident 3.
 					`<div class="box impact-minor">`,
-					`<h2><a href="/ir/ir-3">Incident report 3</a></h2>`,
+					`<h2><a href="https://monkeyisland.slok.dev/ir/ir-3">Incident report 3</a></h2>`,
 					`<p> <p>Some detail 13</p></p>`,
 					`Jun 23, 21:02 - Jun 24, 02:02`,
 
 					// Pagination.
-					`<a href="/history/0"> Next ⮞ </a>`,
+					`<a href="https://monkeyisland.slok.dev/history/0"> Next ⮞ </a>`,
 				},
 			},
 		},
 
 		"IR details should be rendered correctly.": {
-			themeCustomization: base.ThemeCustomization{
-				BrandTitle: "MonkeyIsland",
-				BrandURL:   "https://monkeyisland.slok.dev",
-			},
+			themeCustomization: base.ThemeCustomization{},
 			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
 				History: []*model.IncidentReport{
 					{
 						ID:        "1234567890",
@@ -262,8 +271,8 @@ func TestCreateUI(t *testing.T) {
 			},
 			expectHTML: map[string][]string{
 				"./ir/1234567890.html": {
-					`<h1>Incident report 1</h1>`, // We have the title page.
-					`<a href="/">Status</a>`,     // We have the link to the status.
+					`<h1>Incident report 1</h1>`,                          // We have the title page.
+					`<a href="https://monkeyisland.slok.dev/">Status</a>`, // We have the link to the status.
 
 					// Details.
 					`<h2> Details </h2>`,
@@ -281,8 +290,8 @@ func TestCreateUI(t *testing.T) {
 				},
 
 				"./ir/0987654321.html": {
-					`<h1>Incident report 2</h1>`, // We have the title page.
-					`<a href="/">Status</a>`,     // We have the link to the status.
+					`<h1>Incident report 2</h1>`,                          // We have the title page.
+					`<a href="https://monkeyisland.slok.dev/">Status</a>`, // We have the link to the status.
 
 					// Details.
 					`<h2> Details </h2>`,

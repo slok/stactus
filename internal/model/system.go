@@ -8,13 +8,13 @@ type System struct {
 	Description string
 }
 
-func (i *System) Validate() error {
-	if i.ID == "" {
+func (s *System) Validate() error {
+	if s.ID == "" {
 		return fmt.Errorf("id is required")
 	}
 
-	if i.Name == "" {
-		i.Name = i.ID
+	if s.Name == "" {
+		s.Name = s.ID
 	}
 
 	return nil
