@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type StatusPageSettings struct {
 	Name string // E.g: GitHub.
@@ -11,6 +14,9 @@ func (s *StatusPageSettings) Validate() error {
 	if s.Name == "" {
 		return fmt.Errorf("name is required")
 	}
+
+	s.URL = strings.TrimSpace(s.URL)
+	s.URL = strings.TrimSuffix(s.URL, "/")
 
 	return nil
 }

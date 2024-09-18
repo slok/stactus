@@ -36,7 +36,7 @@ func NewServeCommand(rootConfig *RootCommand, app *kingpin.Application) *ServeCo
 		rootConfig: rootConfig,
 	}
 
-	cmd.Flag("stactus-file", "The path ot the stactus file.").Short('i').Default("./stactus.yaml").StringVar(&c.stactusFilePath)
+	cmd.Flag("stactus-file", "The path ot the stactus file.").Short('i').Default(defaultStactusFile).StringVar(&c.stactusFilePath)
 	cmd.Flag("listen-address", "The address where the server will be listening.").Default(":8080").StringVar(&c.listenAddress)
 
 	return c

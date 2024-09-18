@@ -201,7 +201,7 @@ func (r ReadRepository) mapIncidentV1(s apiv1.IncidentV1) (*model.IncidentReport
 
 func mapImpact(s string) (model.IncidentImpact, error) {
 	switch strings.TrimSpace(strings.ToLower(s)) {
-	case "":
+	case "", "none":
 		return model.IncidentImpactNone, nil
 	case "minor":
 		return model.IncidentImpactMinor, nil
