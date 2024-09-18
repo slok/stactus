@@ -123,7 +123,7 @@ func migrateStatusPageRepository(ctx context.Context, logger log.Logger, repo *m
 				}
 
 				timeline = append(timeline, apiv1.IncidentV1TimelineEvent{
-					TS:            event.TS.Format(time.DateTime),
+					TS:            event.TS.UTC().Format(time.DateTime),
 					Description:   event.Description,
 					Investigating: investigating,
 					Resolved:      resolved,

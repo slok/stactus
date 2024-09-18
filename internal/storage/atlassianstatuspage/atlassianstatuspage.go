@@ -147,7 +147,7 @@ func NewJSONStatusPageRepository(componentsRawJSON string, incidentsRawJSON stri
 		timeline := []model.IncidentReportEvent{}
 		for _, update := range ir.IncidentUpdates {
 			timeline = append(timeline, model.IncidentReportEvent{
-				TS:          update.CreatedAt,
+				TS:          update.CreatedAt.UTC(),
 				Description: update.Body,
 				Kind:        mapStatusPageUpdateStatusToModel(update.Status),
 			})

@@ -229,7 +229,7 @@ func mapTimeline(tl []apiv1.IncidentV1TimelineEvent) ([]model.IncidentReportEven
 		}
 
 		mtl = append(mtl, model.IncidentReportEvent{
-			TS:          ts,
+			TS:          ts.UTC(),
 			Kind:        mapEventKind(e),
 			Description: strings.TrimSpace(e.Description),
 		})
