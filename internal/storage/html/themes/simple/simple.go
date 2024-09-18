@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/slok/stactus/internal/log"
+	"github.com/slok/stactus/internal/storage/html/common"
 	"github.com/slok/stactus/internal/storage/html/themes/base"
-	"github.com/slok/stactus/internal/storage/html/util"
+	utilfs "github.com/slok/stactus/internal/util/fs"
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 )
 
 type GeneratorConfig struct {
-	FileManager        util.FileManager
+	FileManager        utilfs.FileManager
 	OutPath            string
 	Logger             log.Logger
 	ThemeCustomization ThemeCustomization
@@ -33,7 +34,7 @@ type Generator struct {
 
 // NewGenerator returns a simple theme using the base theme as the base.
 func NewGenerator(config GeneratorConfig) (*Generator, error) {
-	rend, err := util.NewThemeRenderer(staticFs, templatesFs)
+	rend, err := common.NewThemeRenderer(staticFs, templatesFs)
 	if err != nil {
 		return nil, fmt.Errorf("could not create theme renderer: %w", err)
 	}

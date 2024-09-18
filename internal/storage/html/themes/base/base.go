@@ -13,7 +13,8 @@ import (
 
 	"github.com/slok/stactus/internal/log"
 	"github.com/slok/stactus/internal/model"
-	"github.com/slok/stactus/internal/storage/html/util"
+	"github.com/slok/stactus/internal/storage/html/common"
+	utilfs "github.com/slok/stactus/internal/util/fs"
 )
 
 var (
@@ -24,18 +25,18 @@ var (
 )
 
 type Generator struct {
-	fileManager        util.FileManager
-	renderer           util.ThemeRenderer
+	fileManager        utilfs.FileManager
+	renderer           common.ThemeRenderer
 	outPath            string
 	themeCustomization ThemeCustomization
 }
 
 type GeneratorConfig struct {
-	FileManager util.FileManager
+	FileManager utilfs.FileManager
 	OutPath     string
 	Logger      log.Logger
 	// Renderer is made public so base theme is easily customizable by only changing the HTML templates.
-	Renderer           *util.ThemeRenderer
+	Renderer           *common.ThemeRenderer
 	ThemeCustomization ThemeCustomization
 }
 
@@ -53,7 +54,7 @@ func (c *ThemeCustomization) defaults() error {
 
 func (c *GeneratorConfig) defaults() error {
 	if c.FileManager == nil {
-		c.FileManager = util.StdFileManager
+		c.FileManager = utilfs.StdFileManager
 	}
 
 	if c.OutPath == "" {
@@ -66,7 +67,7 @@ func (c *GeneratorConfig) defaults() error {
 	c.OutPath = c.OutPath + "/"
 
 	if c.Renderer == nil {
-		rend, err := util.NewThemeRenderer(staticFs, templatesFs)
+		rend, err := common.NewThemeRenderer(staticFs, templatesFs)
 		if err != nil {
 			return fmt.Errorf("could not create theme renderer: %w", err)
 		}

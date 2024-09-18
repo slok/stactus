@@ -34,6 +34,10 @@ type GeneretaCommand struct {
 	devFixtures     bool
 }
 
+const (
+	defaultStactusFile = "stactus.yaml"
+)
+
 // NewGeneretaCommand returns a generator with the github status page theme.
 func NewGeneretaCommand(rootConfig *RootCommand, app *kingpin.Application) *GeneretaCommand {
 	cmd := app.Command("generate", "Generates the static pages.")
@@ -42,9 +46,9 @@ func NewGeneretaCommand(rootConfig *RootCommand, app *kingpin.Application) *Gene
 		rootConfig: rootConfig,
 	}
 
-	cmd.Flag("stactus-file", "The path ot the stactus file.").Short('i').Default("./stactus.yaml").StringVar(&c.stactusFilePath)
-	cmd.Flag("out", "The directory where all the generated files will be written.").Short('o').Default("./out").StringVar(&c.outPath)
-	cmd.Flag("site-url", "The site base url, if set it will override the one on the stactus configuration.").Default("").StringVar(&c.siteURL)
+	cmd.Flag("stactus-file", "The path ot the stactus file.").Short('i').Default(defaultStactusFile).StringVar(&c.stactusFilePath)
+	cmd.Flag("out", "The directory where all the generated files will be written.").Required().Short('o').StringVar(&c.outPath)
+	cmd.Flag("site-url", "The site base url, if set it will override the one on the stactus configuration.").StringVar(&c.siteURL)
 	cmd.Flag("dev-fixtures", "If enabled it will load development fixtures.").BoolVar(&c.devFixtures)
 	cmd.Flag("theme", "Select the theme to render").Default(themeSimple).EnumVar(&c.theme, themeBase, themeSimple)
 

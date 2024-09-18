@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -12,8 +11,11 @@ import (
 	"github.com/alecthomas/kingpin/v2"
 	"gopkg.in/yaml.v3"
 
+	"github.com/slok/stactus/internal/log"
 	"github.com/slok/stactus/internal/model"
 	"github.com/slok/stactus/internal/storage/atlassianstatuspage"
+	"github.com/slok/stactus/internal/storage/memory"
+	utilfs "github.com/slok/stactus/internal/util/fs"
 	apiv1 "github.com/slok/stactus/pkg/api/v1"
 )
 
@@ -33,8 +35,8 @@ func NewMigrateStatusPageCommand(rootConfig *RootCommand, app MigrateCommand) *M
 		rootConfig: rootConfig,
 	}
 
-	cmd.Flag("status-page-url", "The URL to Atlassian status page API (E.g: https://www.githubstatus.com).").Short('i').Required().StringVar(&c.statusPageURL)
-	cmd.Flag("out", "The directory where all the generated files will be written.").Short('o').Default("./out").StringVar(&c.outPath)
+	cmd.Flag("status-page-url", "The URL to Atlassian status page API (E.g: https://www.githubstatus.com).").Required().Short('u').StringVar(&c.statusPageURL)
+	cmd.Flag("out", "The directory where all the generated files will be written.").Required().Short('o').StringVar(&c.outPath)
 
 	return c
 }
@@ -48,6 +50,17 @@ func (c *MigrateStatusPageCommand) Run(ctx context.Context) (err error) {
 
 	logger.Infof("Retrieving data...")
 	repo, err := atlassianstatuspage.NewStatusPageRepository(c.statusPageURL)
+	if err != nil {
+		return fmt.Errorf("could not create atlassian status page repository: %w", err)
+	}
+
+	logger.Infof("Migrating %s...", c.statusPageURL)
+
+	return migrateStatusPageRepository(ctx, logger, repo, c.outPath)
+}
+
+func migrateStatusPageRepository(ctx context.Context, logger log.Logger, repo *memory.Repository, outPath string) error {
+	var fileManager utilfs.FileManager = utilfs.StdFileManager
 
 	// Write stactus file.
 	{
@@ -80,15 +93,10 @@ func (c *MigrateStatusPageCommand) Run(ctx context.Context) (err error) {
 		}
 
 		// Write.
-		filePath := filepath.Join(c.outPath, "stactus.yaml")
-		err = os.MkdirAll(filepath.Dir(filePath), os.ModePerm)
+		fpath := filepath.Join(outPath, "stactus.yaml")
+		err = fileManager.WriteFile(ctx, fpath, data)
 		if err != nil {
-			return fmt.Errorf("could not create directory: %w", err)
-		}
-
-		err = os.WriteFile(filePath, data, 0666)
-		if err != nil {
-			return fmt.Errorf("could not write %q: %w", filePath, err)
+			return fmt.Errorf("could not write %q: %w", fpath, err)
 		}
 	}
 
@@ -101,7 +109,6 @@ func (c *MigrateStatusPageCommand) Run(ctx context.Context) (err error) {
 		}
 
 		// Map each IR.
-		logger.Infof("Migrating incidents...")
 		for _, ir := range irs {
 			// Map to API.
 			timeline := []apiv1.IncidentV1TimelineEvent{}
@@ -135,21 +142,16 @@ func (c *MigrateStatusPageCommand) Run(ctx context.Context) (err error) {
 				Timeline: timeline,
 			}
 
-			filePath := filepath.Join(c.outPath, "incidents", ir.ID+".yaml")
 			data, err := yaml.Marshal(apiIR)
 			if err != nil {
 				return fmt.Errorf("could not marshal to yaml %q incident: %w", ir.ID, err)
 			}
 
 			// Write.
-			err = os.MkdirAll(filepath.Dir(filePath), os.ModePerm)
+			fpath := filepath.Join(outPath, "incidents", ir.ID+".yaml")
+			err = fileManager.WriteFile(ctx, fpath, data)
 			if err != nil {
-				return fmt.Errorf("could not create directory: %w", err)
-			}
-
-			err = os.WriteFile(filePath, data, 0666)
-			if err != nil {
-				return fmt.Errorf("could not write %q: %w", filePath, err)
+				return fmt.Errorf("could not write %q: %w", fpath, err)
 			}
 
 			logger.Debugf("Written %q incident", ir.ID)

@@ -10,7 +10,7 @@ import (
 
 	"github.com/slok/stactus/internal/model"
 	"github.com/slok/stactus/internal/storage/html/themes/simple"
-	"github.com/slok/stactus/internal/storage/html/util"
+	utilfs "github.com/slok/stactus/internal/util/fs"
 )
 
 func TestCreateUI(t *testing.T) {
@@ -314,7 +314,7 @@ func TestCreateUI(t *testing.T) {
 			require := require.New(t)
 			assert := assert.New(t)
 
-			fm := util.NewTestFileManager()
+			fm := utilfs.NewTestFileManager()
 			gen, err := simple.NewGenerator(simple.GeneratorConfig{
 				FileManager:        fm,
 				OutPath:            "./",

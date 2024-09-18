@@ -26,7 +26,9 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 
 	// Setup commands (registers flags).
 	generateCmd := commands.NewGeneretaCommand(rootCmd, app)
-	showcaseCmd := commands.NewShowcaseCommand(rootCmd, app)
+	showcaseCmd := commands.NewShowcaseCommand(app)
+	showcaseMigrateCmd := commands.NewShowcaseMigrateCommand(rootCmd, showcaseCmd)
+	showcaseGenerateCmd := commands.NewShowcaseGenerateCommand(rootCmd, showcaseCmd)
 	serveCmd := commands.NewServeCommand(rootCmd, app)
 	migrateCmd := commands.NewMigrateCommand(app)
 	migrateStatusPageCmd := commands.NewMigrateStatusPageCommand(rootCmd, migrateCmd)
@@ -35,6 +37,8 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	cmds := map[string]commands.Command{
 		generateCmd.Name():          generateCmd,
 		showcaseCmd.Name():          showcaseCmd,
+		showcaseMigrateCmd.Name():   showcaseMigrateCmd,
+		showcaseGenerateCmd.Name():  showcaseGenerateCmd,
 		serveCmd.Name():             serveCmd,
 		migrateCmd.Name():           migrateCmd,
 		migrateStatusPageCmd.Name(): migrateStatusPageCmd,
