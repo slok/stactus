@@ -1,13 +1,16 @@
 {{define "shared_nav"}}
-<nav>
+<nav x-data="{subs_modal_open: false}">
     <ul>
         <li>
             <h2>{{.BrandTitle}} status </h2>
         </li>
     </ul>
     <ul>
+        <li><a @click="subs_modal_open = !subs_modal_open" href="#">Subscribe</a></li>
         <li><a href="{{.HistoryURL}}">History</a></li>
         <li><a href="{{.URLPrefix}}/">Status</a></li>
     </ul>
+
+    {{ template "shared_subscribe_modal" . }}
 </nav>
 {{end}}

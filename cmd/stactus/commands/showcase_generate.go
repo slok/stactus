@@ -13,10 +13,12 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	appgenerate "github.com/slok/stactus/internal/app/generate"
+	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/storage"
 	htmlbase "github.com/slok/stactus/internal/storage/html/themes/base"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
+	"github.com/slok/stactus/internal/storage/prometheus"
 	utilfs "github.com/slok/stactus/internal/util/fs"
 )
 
@@ -189,13 +191,21 @@ func (c *ShowcaseGenerateCommand) Run(ctx context.Context) (err error) {
 							}
 						}
 
+						promRepo, err := prometheus.NewFSRepository(prometheus.RepositoryConfig{
+							MetricsFilePath: filepath.Join(outPath, conventions.PrometheusMetricsPathName),
+						})
+						if err != nil {
+							return fmt.Errorf("could not create prometheus metrics creator: %w", err)
+						}
+
 						// Generator service.
 						genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-							SettingsGetter: roRepo,
-							SystemGetter:   roRepo,
-							IRGetter:       roRepo,
-							UICreator:      uiCreator,
-							Logger:         logger,
+							SettingsGetter:     roRepo,
+							SystemGetter:       roRepo,
+							IRGetter:           roRepo,
+							UICreator:          uiCreator,
+							PromMetricsCreator: promRepo,
+							Logger:             logger,
 						})
 						if err != nil {
 							return fmt.Errorf("could not create generation service: %w", err)

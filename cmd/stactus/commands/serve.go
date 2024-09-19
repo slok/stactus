@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing/fstest"
@@ -15,9 +16,11 @@ import (
 	"github.com/oklog/run"
 
 	appgenerate "github.com/slok/stactus/internal/app/generate"
+	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/log"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
+	"github.com/slok/stactus/internal/storage/prometheus"
 )
 
 type ServeCommand struct {
@@ -97,8 +100,10 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 		repo.SystemGetter = roRepo
 		repo.IncidentReportGetter = roRepo
 
+		memFileManager := &memFSFileManager{fs: memFS}
+
 		repo.UICreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
-			FileManager: &memFSFileManager{fs: memFS},
+			FileManager: memFileManager,
 			OutPath:     "./",
 			Logger:      logger,
 		})
@@ -106,12 +111,21 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 			return fmt.Errorf("could not create html generator: %w", err)
 		}
 
+		repo.PromMetricsCreator, err = prometheus.NewFSRepository(prometheus.RepositoryConfig{
+			FileManager:     memFileManager,
+			MetricsFilePath: filepath.Join("./", conventions.PrometheusMetricsPathName),
+		})
+		if err != nil {
+			return fmt.Errorf("could not create prometheus metrics creator: %w", err)
+		}
+
 		genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-			SettingsGetter: repo,
-			SystemGetter:   repo,
-			IRGetter:       repo,
-			UICreator:      repo,
-			Logger:         logger,
+			SettingsGetter:     repo,
+			SystemGetter:       repo,
+			IRGetter:           repo,
+			UICreator:          repo,
+			PromMetricsCreator: repo,
+			Logger:             logger,
 		})
 		if err != nil {
 			return fmt.Errorf("could not create generation service: %w", err)

@@ -21,6 +21,7 @@ type IncidentReport struct {
 	SystemIDs []string
 	Start     time.Time
 	End       time.Time
+	Duration  time.Duration
 	Impact    IncidentImpact
 	Timeline  []IncidentReportEvent
 }
@@ -65,6 +66,11 @@ func (i *IncidentReport) Validate() error {
 
 	// Set the start to the first event.
 	i.Start = i.Timeline[len(i.Timeline)-1].TS
+
+	// Closed ones don't have a duration.
+	if !i.End.IsZero() {
+		i.Duration = i.End.Sub(i.Start)
+	}
 
 	return nil
 }

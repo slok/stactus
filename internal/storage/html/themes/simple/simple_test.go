@@ -47,8 +47,26 @@ func TestCreateUI(t *testing.T) {
 			expectHTML: map[string][]string{
 				"./index.html": {
 					`<h2>MonkeyIsland status </h2>`,
+					`<li><a @click="subs_modal_open = !subs_modal_open" href="#">Subscribe</a></li>`,
 					`<li><a href="https://monkeyisland.slok.dev/history/0">History</a></li>`,
 					`<li><a href="https://monkeyisland.slok.dev/">Status</a></li>`,
+				},
+			},
+		},
+
+		"The subscription dialog should be rendered correctly.": {
+			themeCustomization: simple.ThemeCustomization{},
+			ui: model.UI{
+				Settings: model.StatusPageSettings{
+					Name: "MonkeyIsland",
+					URL:  "https://monkeyisland.slok.dev",
+				},
+			},
+			expectHTML: map[string][]string{
+				"./index.html": {
+					` <dialog :open="subs_modal_open">`,
+					`Subscribe to updates!`,
+					`<a href="https://monkeyisland.slok.dev/metrics">Prometheus metrics</a>`,
 				},
 			},
 		},
@@ -74,7 +92,7 @@ func TestCreateUI(t *testing.T) {
 			},
 			expectHTML: map[string][]string{
 				"./index.html": {
-					`<nav>`, // We have the nav var.
+					`<nav`, // We have the nav var.
 					`Powered by <a href="https://github.com/slok/stactus">Stactus</a>.`, // We have the footer.
 
 					// Status is ok.
@@ -206,7 +224,7 @@ func TestCreateUI(t *testing.T) {
 			},
 			expectHTML: map[string][]string{
 				"./history/0.html": {
-					`<nav>`, // We have the nav var.
+					`<nav`, // We have the nav var.
 					`Powered by <a href="https://github.com/slok/stactus">Stactus</a>.`, // We have the footer.
 
 					`<h1>Incident History</h1> `, // We have the title.
@@ -228,7 +246,7 @@ func TestCreateUI(t *testing.T) {
 				},
 
 				"./history/1.html": {
-					`<nav>`, // We have the nav var.
+					`<nav`, // We have the nav var.
 					`Powered by <a href="https://github.com/slok/stactus">Stactus</a>.`, // We have the footer.
 
 					`<h1>Incident History</h1> `, // We have the title.
@@ -281,7 +299,7 @@ func TestCreateUI(t *testing.T) {
 			},
 			expectHTML: map[string][]string{
 				"./ir/1234567890.html": {
-					`<nav>`, // We have the nav var.
+					`<nav`, // We have the nav var.
 					`Powered by <a href="https://github.com/slok/stactus">Stactus</a>.`, // We have the footer.
 
 					`class="text-major">Incident report 1</h1>`,    // We have the IR title with impact.
@@ -295,7 +313,7 @@ func TestCreateUI(t *testing.T) {
 				},
 
 				"./ir/0987654321.html": {
-					`<nav>`, // We have the nav var.
+					`<nav`, // We have the nav var.
 					`Powered by <a href="https://github.com/slok/stactus">Stactus</a>.`, // We have the footer.
 
 					`class="text-minor">Incident report 2</h1>`, // We have the IR title with impact.

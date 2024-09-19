@@ -6,16 +6,19 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/oklog/run"
 
 	appgenerate "github.com/slok/stactus/internal/app/generate"
+	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/dev"
 	"github.com/slok/stactus/internal/storage"
 	htmlbase "github.com/slok/stactus/internal/storage/html/themes/base"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
+	"github.com/slok/stactus/internal/storage/prometheus"
 )
 
 const (
@@ -117,6 +120,13 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 		return fmt.Errorf("unknown theme")
 	}
 
+	repo.PromMetricsCreator, err = prometheus.NewFSRepository(prometheus.RepositoryConfig{
+		MetricsFilePath: filepath.Join(c.outPath, conventions.PrometheusMetricsPathName),
+	})
+	if err != nil {
+		return fmt.Errorf("could not create prometheus metrics creator: %w", err)
+	}
+
 	// Prepare run entrypoints.
 	var g run.Group
 
@@ -137,11 +147,12 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 	// Upper layer context handler.
 	{
 		genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-			SettingsGetter: repo,
-			SystemGetter:   repo,
-			IRGetter:       repo,
-			UICreator:      repo,
-			Logger:         logger,
+			SettingsGetter:     repo,
+			SystemGetter:       repo,
+			IRGetter:           repo,
+			UICreator:          repo,
+			PromMetricsCreator: repo,
+			Logger:             logger,
 		})
 		if err != nil {
 			return fmt.Errorf("could not create generation service: %w", err)
@@ -169,4 +180,5 @@ type unifiedRepository struct {
 	storage.SystemGetter
 	storage.IncidentReportGetter
 	storage.UICreator
+	storage.PromMetricsCreator
 }

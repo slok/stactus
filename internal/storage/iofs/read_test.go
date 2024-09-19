@@ -55,8 +55,9 @@ timeline:
 
 func getIRForTSFormatsResult(ts1, ts2 time.Time) model.IncidentReport {
 	return model.IncidentReport{ID: "test-0001", Name: "incident 1", SystemIDs: []string{"system1"}, Impact: "minor",
-		Start: time.Date(2024, 9, 13, 5, 42, 0, 0, time.UTC),
-		End:   time.Date(2024, 9, 13, 5, 59, 0, 0, time.UTC),
+		Start:    time.Date(2024, 9, 13, 5, 42, 0, 0, time.UTC),
+		End:      time.Date(2024, 9, 13, 5, 59, 0, 0, time.UTC),
+		Duration: ts2.Sub(ts1),
 		Timeline: []model.IncidentReportEvent{
 			{Description: "ts2", Kind: model.IncidentUpdateKindResolved, TS: ts2},
 			{Description: "ts1", Kind: model.IncidentUpdateKindInvestigating, TS: ts1},
@@ -129,8 +130,9 @@ timeline:
 			expSystems:  testSystems,
 			expIRs: []model.IncidentReport{
 				{ID: "test-0001", Name: "incident 1", SystemIDs: []string{"system1"}, Impact: "minor",
-					Start: time.Date(2024, 9, 13, 5, 42, 0, 0, time.UTC),
-					End:   time.Date(2024, 9, 13, 5, 59, 0, 0, time.UTC),
+					Start:    time.Date(2024, 9, 13, 5, 42, 0, 0, time.UTC),
+					End:      time.Date(2024, 9, 13, 5, 59, 0, 0, time.UTC),
+					Duration: 17 * time.Minute,
 					Timeline: []model.IncidentReportEvent{
 						{Description: "desc 3", Kind: model.IncidentUpdateKindResolved, TS: time.Date(2024, 9, 13, 5, 59, 0, 0, time.UTC)},
 						{Description: "desc 2", Kind: model.IncidentUpdateKindUpdate, TS: time.Date(2024, 9, 13, 5, 48, 0, 0, time.UTC)},

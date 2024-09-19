@@ -42,6 +42,7 @@ func TestNewJSONStatusPageRepository(t *testing.T) {
 					Impact:    model.IncidentImpactMajor,
 					Start:     time.Date(2024, time.September, 16, 21, 31, 2, 798000000, time.UTC),
 					End:       time.Date(2024, time.September, 16, 22, 8, 39, 333000000, time.UTC),
+					Duration:  2256535000000 * time.Nanosecond,
 					Timeline: []model.IncidentReportEvent{
 						{
 							Description: "This incident has been resolved.",
@@ -83,6 +84,7 @@ func TestNewJSONStatusPageRepository(t *testing.T) {
 					Impact:    model.IncidentImpactMinor,
 					Start:     time.Date(2024, time.September, 16, 13, 29, 47, 204000000, time.UTC),
 					End:       time.Date(2024, time.September, 16, 14, 28, 3, 812000000, time.UTC),
+					Duration:  3496608000000 * time.Nanosecond,
 					Timeline: []model.IncidentReportEvent{
 						{
 							Description: "This incident has been resolved.",

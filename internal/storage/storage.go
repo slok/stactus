@@ -29,3 +29,9 @@ type UICreator interface {
 }
 
 //go:generate mockery --case underscore --output storagemock --outpkg storagemock --name UICreator
+
+type PromMetricsCreator interface {
+	CreatePromMetrics(ctx context.Context, ui model.UI) error
+}
+
+//go:generate mockery --case underscore --output storagemock --outpkg storagemock --name PromMetricsCreator

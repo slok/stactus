@@ -11,6 +11,7 @@ import (
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
 
+	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/log"
 	"github.com/slok/stactus/internal/model"
 	"github.com/slok/stactus/internal/storage/html/common"
@@ -110,8 +111,9 @@ func (g Generator) CreateUI(ctx context.Context, ui model.UI) error {
 	siteURL = strings.TrimSuffix(siteURL, "/")
 
 	tplCommonData := tplCommonData{
-		BrandTitle: ui.Settings.Name,
-		URLPrefix:  siteURL,
+		BrandTitle:            ui.Settings.Name,
+		URLPrefix:             siteURL,
+		PrometheusMetricsPath: conventions.PrometheusMetricsPathName,
 	}
 	tplCommonData.HistoryURL = tplCommonData.urlHistory(0, false)
 
@@ -365,9 +367,10 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI, tplCommon tplCommonD
 }
 
 type tplCommonData struct {
-	URLPrefix  string
-	BrandTitle string
-	HistoryURL string
+	URLPrefix             string
+	BrandTitle            string
+	HistoryURL            string
+	PrometheusMetricsPath string
 }
 
 func (t tplCommonData) urlHistory(page int, fileName bool) string {
