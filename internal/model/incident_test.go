@@ -19,6 +19,7 @@ func getBaseIncidentReport() model.IncidentReport {
 		Name:      "Test 1",
 		Start:     t0,
 		End:       t1,
+		Duration:  17 * time.Minute,
 		SystemIDs: []string{"system1", "system2"},
 		Impact:    model.IncidentImpactCritical,
 		Timeline: []model.IncidentReportEvent{

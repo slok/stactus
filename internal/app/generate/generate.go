@@ -3,6 +3,7 @@ package generate
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/slok/stactus/internal/internalerrors"
 	"github.com/slok/stactus/internal/log"
@@ -11,10 +12,11 @@ import (
 )
 
 type ServiceConfig struct {
-	SettingsGetter storage.StatusPageSettingsGetter
-	SystemGetter   storage.SystemGetter
-	IRGetter       storage.IncidentReportGetter
-	UICreator      storage.UICreator
+	SettingsGetter     storage.StatusPageSettingsGetter
+	SystemGetter       storage.SystemGetter
+	IRGetter           storage.IncidentReportGetter
+	UICreator          storage.UICreator
+	PromMetricsCreator storage.PromMetricsCreator
 
 	Logger log.Logger
 }
@@ -29,11 +31,15 @@ func (c *ServiceConfig) defaults() error {
 	}
 
 	if c.IRGetter == nil {
-		return fmt.Errorf("IR getter is required")
+		return fmt.Errorf("ir getter is required")
 	}
 
 	if c.UICreator == nil {
-		return fmt.Errorf("UI creator is required")
+		return fmt.Errorf("ui creator is required")
+	}
+
+	if c.PromMetricsCreator == nil {
+		return fmt.Errorf("prom metrics creator is required")
 	}
 
 	if c.Logger == nil {
@@ -50,6 +56,7 @@ type Service struct {
 	sysGetter      storage.SystemGetter
 	irGetter       storage.IncidentReportGetter
 	uiCreator      storage.UICreator
+	promCreator    storage.PromMetricsCreator
 	logger         log.Logger
 }
 
@@ -64,6 +71,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		sysGetter:      config.SystemGetter,
 		irGetter:       config.IRGetter,
 		uiCreator:      config.UICreator,
+		promCreator:    config.PromMetricsCreator,
 		logger:         config.Logger,
 	}, nil
 }
@@ -138,9 +146,39 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 		})
 	}
 
-	// Generate.
+	// Calcualate stats.
+	stats := model.UIStats{
+		TotalSystems: len(systemDetails),
+		TotalIRs:     len(history),
+		TotalOpenIRs: len(openedIRs),
+	}
+	var mttrTotalTime time.Duration
+	mttrTotalIRs := 0
+	for _, ir := range history {
+		switch ir.Impact {
+		case model.IncidentImpactMinor:
+			stats.TotalMinorIRs++
+		case model.IncidentImpactMajor:
+			stats.TotalMajorIRs++
+		case model.IncidentImpactCritical:
+			stats.TotalCriticalIRs++
+		}
+
+		if ir.Duration != 0 {
+			mttrTotalIRs++
+			mttrTotalTime += ir.Duration
+		}
+	}
+
+	if mttrTotalTime != 0 {
+		mttr := mttrTotalTime / time.Duration(mttrTotalIRs)
+		stats.MTTR = mttr
+	}
+
+	// Generate UI.
 	ui := model.UI{
 		Settings:      *settings,
+		Stats:         stats,
 		SystemDetails: systemDetails,
 		History:       history,
 		OpenedIRs:     openedIRs,
@@ -148,6 +186,12 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 	err = s.uiCreator.CreateUI(ctx, ui)
 	if err != nil {
 		return GenerateResp{}, fmt.Errorf("could not generate UI: %w", err)
+	}
+
+	// Generate metrics.
+	err = s.promCreator.CreatePromMetrics(ctx, ui)
+	if err != nil {
+		return GenerateResp{}, fmt.Errorf("could not generate prom metrics: %w", err)
 	}
 
 	return GenerateResp{}, nil

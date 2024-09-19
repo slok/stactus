@@ -1,0 +1,18 @@
+{{define "shared_subscribe_modal"}}
+<dialog :open="subs_modal_open">
+    <article>
+        <header>
+            <button @click="subs_modal_open = !subs_modal_open" aria-label="Close" rel="prev"></button>
+            <p>
+                <strong>Subscribe to updates!</strong>
+            </p>
+        </header>
+        <ul>
+            <li>
+                <img height="24" width="24" src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/prometheus.svg" />
+                <a href="{{.URLPrefix}}/{{.PrometheusMetricsPath}}">Prometheus metrics</a>
+            </li>
+        </ul>
+    </article>
+</dialog>
+{{ end }}

@@ -80,3 +80,15 @@ func (f TestFileManager) AssertContains(t *testing.T, path string, exp []string)
 		assert.Contains(t, got, e)
 	}
 }
+
+func (f TestFileManager) AssertEqual(t *testing.T, path string, exp string) {
+	got, ok := f.files[path]
+	if !ok {
+		assert.Fail(t, "path missing", path)
+		return
+	}
+	got = strings.TrimSpace(got)
+	exp = strings.TrimSpace(exp)
+
+	assert.Equal(t, exp, got)
+}

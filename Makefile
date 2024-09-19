@@ -11,7 +11,7 @@ INTEGRATION_TEST_CMD := ./scripts/check/integration-test.sh
 CHECK_CMD := ./scripts/check/check.sh
 
 DEV_IMAGE_NAME := localdev/stactus
-PROD_IMAGE_NAME ?=   ghcr.io/slok/stactus
+PROD_IMAGE_NAME ?= ghcr.io/slok/stactus
 
 DOCKER_RUN_CMD := docker run --env ostype=$(OSTYPE) -v ${PWD}:/src --rm ${DEV_IMAGE_NAME}
 BUILD_BINARY_CMD := VERSION=${VERSION} ./scripts/build/bin/build.sh
