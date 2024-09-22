@@ -17,13 +17,11 @@ func TestCreateUI(t *testing.T) {
 	t0, _ := time.Parse(time.RFC3339, "1912-06-23T01:02:03Z")
 
 	tests := map[string]struct {
-		themeCustomization simple.ThemeCustomization
-		ui                 model.UI
-		expectHTML         map[string][]string
-		expErr             bool
+		ui         model.UI
+		expectHTML map[string][]string
+		expErr     bool
 	}{
 		"The static files have been rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
 				Settings: model.StatusPageSettings{
 					Name: "MonkeyIsland",
@@ -37,7 +35,6 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"The nav should be rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
 				Settings: model.StatusPageSettings{
 					Name: "MonkeyIsland",
@@ -55,7 +52,6 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"The subscription dialog should be rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
 				Settings: model.StatusPageSettings{
 					Name: "MonkeyIsland",
@@ -73,7 +69,6 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"If all systems are ok it should be reflected.": {
-			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
 				Settings: model.StatusPageSettings{
 					Name: "MonkeyIsland",
@@ -106,7 +101,6 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"If any systems is not ok it should be reflected.": {
-			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
 				Settings: model.StatusPageSettings{
 					Name: "MonkeyIsland",
@@ -174,9 +168,6 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"History pagination should be rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{
-				HistoryIRPerPage: 2,
-			},
 			ui: model.UI{
 				Settings: model.StatusPageSettings{
 					Name: "MonkeyIsland",
@@ -265,7 +256,6 @@ func TestCreateUI(t *testing.T) {
 		},
 
 		"IR details should be rendered correctly.": {
-			themeCustomization: simple.ThemeCustomization{},
 			ui: model.UI{
 				Settings: model.StatusPageSettings{
 					Name: "MonkeyIsland",
@@ -335,9 +325,9 @@ func TestCreateUI(t *testing.T) {
 
 			fm := utilfs.NewTestFileManager()
 			gen, err := simple.NewGenerator(simple.GeneratorConfig{
-				FileManager:        fm,
-				OutPath:            "./",
-				ThemeCustomization: test.themeCustomization,
+				FileManager:      fm,
+				OutPath:          "./",
+				HistoryIRPerPage: 2,
 			})
 			require.NoError(err)
 			err = gen.CreateUI(context.TODO(), test.ui)

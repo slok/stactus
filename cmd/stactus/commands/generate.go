@@ -16,14 +16,12 @@ import (
 	"github.com/slok/stactus/internal/dev"
 	"github.com/slok/stactus/internal/storage"
 	"github.com/slok/stactus/internal/storage/feed"
-	htmlbase "github.com/slok/stactus/internal/storage/html/themes/base"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
 	"github.com/slok/stactus/internal/storage/prometheus"
 )
 
 const (
-	themeBase   = "base"
 	themeSimple = "simple"
 )
 
@@ -54,7 +52,7 @@ func NewGeneretaCommand(rootConfig *RootCommand, app *kingpin.Application) *Gene
 	cmd.Flag("out", "The directory where all the generated files will be written.").Required().Short('o').StringVar(&c.outPath)
 	cmd.Flag("site-url", "The site base url, if set it will override the one on the stactus configuration.").StringVar(&c.siteURL)
 	cmd.Flag("dev-fixtures", "If enabled it will load development fixtures.").BoolVar(&c.devFixtures)
-	cmd.Flag("theme", "Select the theme to render").Default(themeSimple).EnumVar(&c.theme, themeBase, themeSimple)
+	cmd.Flag("theme", "Select the theme to render").Default(themeSimple).EnumVar(&c.theme, themeSimple)
 
 	return c
 }
@@ -108,14 +106,6 @@ func (c *GeneretaCommand) Run(ctx context.Context) (err error) {
 
 	var repoUICreator storage.UICreator
 	switch c.theme {
-	case themeBase:
-		repoUICreator, err = htmlbase.NewGenerator(htmlbase.GeneratorConfig{
-			OutPath: c.outPath,
-			Logger:  logger,
-		})
-		if err != nil {
-			return fmt.Errorf("could not create html generator: %w", err)
-		}
 	case themeSimple:
 		repoUICreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
 			OutPath: c.outPath,
