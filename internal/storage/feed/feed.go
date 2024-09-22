@@ -14,6 +14,7 @@ import (
 	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/model"
 	utilfs "github.com/slok/stactus/internal/util/fs"
+	utilhtml "github.com/slok/stactus/internal/util/html"
 )
 
 type RepositoryConfig struct {
@@ -93,9 +94,14 @@ func (r Repository) CreateHistoryFeed(ctx context.Context, ui model.UI) error {
 		var b bytes.Buffer
 		data := []irHTMLItemData{}
 		for _, e := range ir.Timeline {
+			md, err := utilhtml.RenderMarkdownToHTML(e.Description)
+			if err != nil {
+				return fmt.Errorf("could not render markdown: %w", err)
+			}
+
 			data = append(data, irHTMLItemData{
 				Kind:        string(e.Kind),
-				Description: e.Description,
+				Description: md,
 				TS:          e.TS.UTC().Format(time.RFC3339),
 			})
 		}
@@ -133,7 +139,7 @@ func (r Repository) CreateHistoryFeed(ctx context.Context, ui model.UI) error {
 type irHTMLItemData struct {
 	TS          string
 	Kind        string
-	Description string
+	Description template.HTML // Already scaped by markdown.
 }
 
 var irHTMLItemsTpl = template.Must(template.New("").Parse(`
