@@ -200,7 +200,7 @@ func (c *ShowcaseGenerateCommand) Run(ctx context.Context) (err error) {
 						}
 
 						repoFeedCreator, err := feed.NewFSRepository(feed.RepositoryConfig{
-							AtomHistoryFilePath: filepath.Join(filepath.Join(outPath, conventions.PrometheusMetricsPathName), conventions.IRHistoryAtomFeedPathName),
+							AtomHistoryFilePath: filepath.Join(outPath, conventions.IRHistoryAtomFeedPathName),
 						})
 						if err != nil {
 							return fmt.Errorf("could not create feed creator: %w", err)
