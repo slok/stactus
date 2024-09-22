@@ -17,6 +17,7 @@ type ServiceConfig struct {
 	IRGetter           storage.IncidentReportGetter
 	UICreator          storage.UICreator
 	PromMetricsCreator storage.PromMetricsCreator
+	FeedCreator        storage.FeedCreator
 
 	Logger log.Logger
 }
@@ -42,6 +43,10 @@ func (c *ServiceConfig) defaults() error {
 		return fmt.Errorf("prom metrics creator is required")
 	}
 
+	if c.FeedCreator == nil {
+		return fmt.Errorf("feed creator is required")
+	}
+
 	if c.Logger == nil {
 		return fmt.Errorf("logger is required")
 	}
@@ -57,6 +62,7 @@ type Service struct {
 	irGetter       storage.IncidentReportGetter
 	uiCreator      storage.UICreator
 	promCreator    storage.PromMetricsCreator
+	feedCreator    storage.FeedCreator
 	logger         log.Logger
 }
 
@@ -72,6 +78,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		irGetter:       config.IRGetter,
 		uiCreator:      config.UICreator,
 		promCreator:    config.PromMetricsCreator,
+		feedCreator:    config.FeedCreator,
 		logger:         config.Logger,
 	}, nil
 }
@@ -192,6 +199,12 @@ func (s Service) Generate(ctx context.Context, req GenerateReq) (GenerateResp, e
 	err = s.promCreator.CreatePromMetrics(ctx, ui)
 	if err != nil {
 		return GenerateResp{}, fmt.Errorf("could not generate prom metrics: %w", err)
+	}
+
+	// Generate feeds.
+	err = s.feedCreator.CreateHistoryFeed(ctx, ui)
+	if err != nil {
+		return GenerateResp{}, fmt.Errorf("could not generate feeds: %w", err)
 	}
 
 	return GenerateResp{}, nil

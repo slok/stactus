@@ -15,6 +15,7 @@ import (
 	appgenerate "github.com/slok/stactus/internal/app/generate"
 	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/storage"
+	"github.com/slok/stactus/internal/storage/feed"
 	htmlbase "github.com/slok/stactus/internal/storage/html/themes/base"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
@@ -198,6 +199,13 @@ func (c *ShowcaseGenerateCommand) Run(ctx context.Context) (err error) {
 							return fmt.Errorf("could not create prometheus metrics creator: %w", err)
 						}
 
+						repoFeedCreator, err := feed.NewFSRepository(feed.RepositoryConfig{
+							AtomHistoryFilePath: filepath.Join(filepath.Join(outPath, conventions.PrometheusMetricsPathName), conventions.IRHistoryAtomFeedPathName),
+						})
+						if err != nil {
+							return fmt.Errorf("could not create feed creator: %w", err)
+						}
+
 						// Generator service.
 						genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
 							SettingsGetter:     roRepo,
@@ -205,6 +213,7 @@ func (c *ShowcaseGenerateCommand) Run(ctx context.Context) (err error) {
 							IRGetter:           roRepo,
 							UICreator:          uiCreator,
 							PromMetricsCreator: promRepo,
+							FeedCreator:        repoFeedCreator,
 							Logger:             logger,
 						})
 						if err != nil {

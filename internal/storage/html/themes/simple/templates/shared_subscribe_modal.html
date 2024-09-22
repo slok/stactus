@@ -7,10 +7,14 @@
                 <strong>Subscribe to updates!</strong>
             </p>
         </header>
-        <ul>
+        <ul class="no-bullets">
             <li>
-                <img height="24" width="24" src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/prometheus.svg" />
+                <img height="16" width="16" src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/prometheus.svg" />
                 <a href="{{.URLPrefix}}/{{.PrometheusMetricsPath}}">Prometheus metrics</a>
+            </li>
+            <li>
+                <img height="16" width="16" src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/rss.svg" />
+                <a href="{{.URLPrefix}}/{{.AtomHistoryFeedPath}}">Atom feed</a>
             </li>
         </ul>
     </article>

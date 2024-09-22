@@ -18,6 +18,7 @@ import (
 	appgenerate "github.com/slok/stactus/internal/app/generate"
 	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/log"
+	"github.com/slok/stactus/internal/storage/feed"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
 	"github.com/slok/stactus/internal/storage/prometheus"
@@ -78,9 +79,6 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 		}
 
 		// Setup repository.
-		repo := unifiedRepository{}
-		memFS := fstest.MapFS{}
-
 		d := path.Dir(c.stactusFilePath)
 		rootFS := os.DirFS(d)
 		incidentsFS, err := fs.Sub(rootFS, "incidents")
@@ -96,13 +94,10 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 			return fmt.Errorf("could not load data: %w", err)
 		}
 
-		repo.StatusPageSettingsGetter = roRepo
-		repo.SystemGetter = roRepo
-		repo.IncidentReportGetter = roRepo
-
+		memFS := fstest.MapFS{}
 		memFileManager := &memFSFileManager{fs: memFS}
 
-		repo.UICreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
+		repoUICreator, err := htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
 			FileManager: memFileManager,
 			OutPath:     "./",
 			Logger:      logger,
@@ -111,7 +106,7 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 			return fmt.Errorf("could not create html generator: %w", err)
 		}
 
-		repo.PromMetricsCreator, err = prometheus.NewFSRepository(prometheus.RepositoryConfig{
+		repoPromCreator, err := prometheus.NewFSRepository(prometheus.RepositoryConfig{
 			FileManager:     memFileManager,
 			MetricsFilePath: filepath.Join("./", conventions.PrometheusMetricsPathName),
 		})
@@ -119,12 +114,21 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 			return fmt.Errorf("could not create prometheus metrics creator: %w", err)
 		}
 
+		repoFeedCreator, err := feed.NewFSRepository(feed.RepositoryConfig{
+			FileManager:         memFileManager,
+			AtomHistoryFilePath: filepath.Join("./", conventions.IRHistoryAtomFeedPathName),
+		})
+		if err != nil {
+			return fmt.Errorf("could not create feed creator: %w", err)
+		}
+
 		genService, err := appgenerate.NewService(appgenerate.ServiceConfig{
-			SettingsGetter:     repo,
-			SystemGetter:       repo,
-			IRGetter:           repo,
-			UICreator:          repo,
-			PromMetricsCreator: repo,
+			SettingsGetter:     roRepo,
+			SystemGetter:       roRepo,
+			IRGetter:           roRepo,
+			UICreator:          repoUICreator,
+			PromMetricsCreator: repoPromCreator,
+			FeedCreator:        repoFeedCreator,
 			Logger:             logger,
 		})
 		if err != nil {

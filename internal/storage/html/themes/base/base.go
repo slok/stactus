@@ -114,8 +114,9 @@ func (g Generator) CreateUI(ctx context.Context, ui model.UI) error {
 		BrandTitle:            ui.Settings.Name,
 		URLPrefix:             siteURL,
 		PrometheusMetricsPath: conventions.PrometheusMetricsPathName,
+		AtomHistoryFeedPath:   conventions.IRHistoryAtomFeedPathName,
 	}
-	tplCommonData.HistoryURL = tplCommonData.urlHistory(0, false)
+	tplCommonData.HistoryURL = conventions.IRHistoryURL(tplCommonData.URLPrefix, 0)
 
 	err := g.genStatic(ctx)
 	if err != nil {
@@ -189,7 +190,7 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI, tplCommon tplC
 	for _, ir := range ui.OpenedIRs {
 		data.OngoingIRs = append(data.OngoingIRs, ongoingIRsTplData{
 			Name:         ir.Name,
-			URL:          tplCommon.urlIRDetail(ir.ID, false),
+			URL:          conventions.IRDetailURL(tplCommon.URLPrefix, ir.ID),
 			LatestUpdate: renderMarkdown(ir.Timeline[0].Description),
 			TS:           ir.Timeline[0].TS,
 			Impact:       string(ir.Impact),
@@ -217,7 +218,7 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI, tplCommon tplC
 		return fmt.Errorf("could not render index: %w", err)
 	}
 
-	err = g.fileManager.WriteFile(ctx, g.outPath+tplCommon.urlIndex(true), []byte(index))
+	err = g.fileManager.WriteFile(ctx, conventions.IndexFilePath(g.outPath), []byte(index))
 	if err != nil {
 		return fmt.Errorf("could not write index: %w", err)
 	}
@@ -255,8 +256,8 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI, tplCommon tplCom
 
 	// Render a history per page.
 	for i, page := range pageIncidents {
-		nextURL := tplCommon.urlHistory(i-1, false)
-		previousURL := tplCommon.urlHistory(i+1, false)
+		nextURL := conventions.IRHistoryURL(tplCommon.URLPrefix, i-1)
+		previousURL := conventions.IRHistoryURL(tplCommon.URLPrefix, i+1)
 
 		// Special page cases (first, last).
 		switch {
@@ -275,7 +276,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI, tplCommon tplCom
 
 			incidents = append(incidents, incidentTplData{
 				Title:        ir.Name,
-				URL:          tplCommon.urlIRDetail(ir.ID, false),
+				URL:          conventions.IRDetailURL(tplCommon.URLPrefix, ir.ID),
 				LatestUpdate: latestUpdate,
 				StartTS:      ir.Start,
 				EndTS:        ir.End,
@@ -296,7 +297,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI, tplCommon tplCom
 			return fmt.Errorf("could not render index: %w", err)
 		}
 
-		err = g.fileManager.WriteFile(ctx, g.outPath+tplCommon.urlHistory(i, true), []byte(index))
+		err = g.fileManager.WriteFile(ctx, conventions.IRHistoryFilePath(g.outPath, i), []byte(index))
 		if err != nil {
 			return fmt.Errorf("could not write index: %w", err)
 		}
@@ -357,7 +358,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI, tplCommon tplCommonD
 			return fmt.Errorf("could not render index: %w", err)
 		}
 
-		err = g.fileManager.WriteFile(ctx, g.outPath+tplCommon.urlIRDetail(ir.ID, true), []byte(index))
+		err = g.fileManager.WriteFile(ctx, conventions.IRDetailFilePath(g.outPath, ir.ID), []byte(index))
 		if err != nil {
 			return fmt.Errorf("could not write index: %w", err)
 		}
@@ -371,33 +372,7 @@ type tplCommonData struct {
 	BrandTitle            string
 	HistoryURL            string
 	PrometheusMetricsPath string
-}
-
-func (t tplCommonData) urlHistory(page int, fileName bool) string {
-	u := fmt.Sprintf("history/%d", page)
-	if fileName {
-		return u + ".html"
-	}
-
-	return t.URLPrefix + "/" + u
-}
-
-func (t tplCommonData) urlIndex(fileName bool) string {
-	const url = "index"
-	if fileName {
-		return url + ".html"
-	}
-
-	return t.URLPrefix + "/" + url
-}
-
-func (t tplCommonData) urlIRDetail(irID string, fileName bool) string {
-	u := fmt.Sprintf("ir/%s", irID)
-	if fileName {
-		return u + ".html"
-	}
-
-	return t.URLPrefix + "/" + u
+	AtomHistoryFeedPath   string
 }
 
 func renderMarkdown(md string) string {

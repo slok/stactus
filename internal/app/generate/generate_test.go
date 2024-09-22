@@ -23,6 +23,7 @@ func TestGenerate(t *testing.T) {
 		mig  *storagemock.IncidentReportGetter
 		muc  *storagemock.UICreator
 		mpc  *storagemock.PromMetricsCreator
+		mfc  *storagemock.FeedCreator
 	}
 
 	t0 := time.Now()
@@ -112,6 +113,8 @@ func TestGenerate(t *testing.T) {
 				m.muc.On("CreateUI", mock.Anything, exp).Once().Return(nil)
 
 				m.mpc.On("CreatePromMetrics", mock.Anything, exp).Once().Return(nil)
+
+				m.mfc.On("CreateHistoryFeed", mock.Anything, exp).Once().Return(nil)
 			},
 			req:     generate.GenerateReq{},
 			expResp: generate.GenerateResp{},
@@ -198,6 +201,8 @@ func TestGenerate(t *testing.T) {
 				m.muc.On("CreateUI", mock.Anything, exp).Once().Return(nil)
 
 				m.mpc.On("CreatePromMetrics", mock.Anything, exp).Once().Return(nil)
+
+				m.mfc.On("CreateHistoryFeed", mock.Anything, exp).Once().Return(nil)
 			},
 			req:     generate.GenerateReq{OverrideSiteURL: "https://something-new.io"},
 			expResp: generate.GenerateResp{},
@@ -216,6 +221,7 @@ func TestGenerate(t *testing.T) {
 				mig:  storagemock.NewIncidentReportGetter(t),
 				muc:  storagemock.NewUICreator(t),
 				mpc:  storagemock.NewPromMetricsCreator(t),
+				mfc:  storagemock.NewFeedCreator(t),
 			}
 
 			test.mock(m)
@@ -227,6 +233,7 @@ func TestGenerate(t *testing.T) {
 				IRGetter:           m.mig,
 				UICreator:          m.muc,
 				PromMetricsCreator: m.mpc,
+				FeedCreator:        m.mfc,
 				Logger:             log.Noop,
 			})
 			require.NoError(err)
@@ -245,6 +252,7 @@ func TestGenerate(t *testing.T) {
 			m.mig.AssertExpectations(t)
 			m.muc.AssertExpectations(t)
 			m.mpc.AssertExpectations(t)
+			m.mfc.AssertExpectations(t)
 		})
 	}
 }
