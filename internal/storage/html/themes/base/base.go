@@ -4,18 +4,16 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"html/template"
 	"strings"
 	"time"
-
-	"github.com/gomarkdown/markdown"
-	"github.com/gomarkdown/markdown/html"
-	"github.com/gomarkdown/markdown/parser"
 
 	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/log"
 	"github.com/slok/stactus/internal/model"
 	"github.com/slok/stactus/internal/storage/html/common"
 	utilfs "github.com/slok/stactus/internal/util/fs"
+	utilhtml "github.com/slok/stactus/internal/util/html"
 )
 
 var (
@@ -170,7 +168,7 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI, tplCommon tplC
 	type ongoingIRsTplData struct {
 		Name         string
 		URL          string
-		LatestUpdate string
+		LatestUpdate template.HTML
 		TS           time.Time
 		Impact       string
 	}
@@ -188,10 +186,15 @@ func (g Generator) genDashboard(ctx context.Context, ui model.UI, tplCommon tplC
 	}
 
 	for _, ir := range ui.OpenedIRs {
+		latestUpdate, err := utilhtml.RenderMarkdownToHTML(ir.Timeline[0].Description)
+		if err != nil {
+			return fmt.Errorf("could not render markdown: %w", err)
+		}
+
 		data.OngoingIRs = append(data.OngoingIRs, ongoingIRsTplData{
 			Name:         ir.Name,
 			URL:          conventions.IRDetailURL(tplCommon.URLPrefix, ir.ID),
-			LatestUpdate: renderMarkdown(ir.Timeline[0].Description),
+			LatestUpdate: latestUpdate,
 			TS:           ir.Timeline[0].TS,
 			Impact:       string(ir.Impact),
 		})
@@ -231,7 +234,7 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI, tplCommon tplCom
 	type incidentTplData struct {
 		Title        string
 		URL          string
-		LatestUpdate string
+		LatestUpdate template.HTML
 		StartTS      time.Time
 		EndTS        time.Time
 		Impact       string
@@ -269,9 +272,13 @@ func (g Generator) genHistory(ctx context.Context, ui model.UI, tplCommon tplCom
 
 		incidents := []incidentTplData{}
 		for _, ir := range page {
-			latestUpdate := ""
+			var latestUpdate template.HTML
+			var err error
 			if len(ir.Timeline) > 0 {
-				latestUpdate = renderMarkdown(ir.Timeline[0].Description)
+				latestUpdate, err = utilhtml.RenderMarkdownToHTML(ir.Timeline[0].Description)
+				if err != nil {
+					return fmt.Errorf("could not render markdown: %w", err)
+				}
 			}
 
 			incidents = append(incidents, incidentTplData{
@@ -311,7 +318,7 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI, tplCommon tplCommonD
 	type timelineTplData struct {
 		Kind   string
 		TS     time.Time
-		Detail string
+		Detail template.HTML
 	}
 
 	type tplData struct {
@@ -334,10 +341,15 @@ func (g Generator) genIRs(ctx context.Context, ui model.UI, tplCommon tplCommonD
 
 		timeline := []timelineTplData{}
 		for _, d := range ir.Timeline {
+			md, err := utilhtml.RenderMarkdownToHTML(d.Description)
+			if err != nil {
+				return fmt.Errorf("could not render markdown: %w", err)
+			}
+
 			timeline = append(timeline, timelineTplData{
 				Kind:   string(d.Kind),
 				TS:     d.TS,
-				Detail: renderMarkdown(d.Description),
+				Detail: md,
 			})
 		}
 
@@ -373,17 +385,4 @@ type tplCommonData struct {
 	HistoryURL            string
 	PrometheusMetricsPath string
 	AtomHistoryFeedPath   string
-}
-
-func renderMarkdown(md string) string {
-	// create markdown parser with extensions
-	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
-	p := parser.NewWithExtensions(extensions)
-	doc := p.Parse([]byte(md))
-
-	// create HTML renderer with extensions
-	htmlFlags := html.CommonFlags | html.HrefTargetBlank
-	renderer := html.NewRenderer(html.RendererOptions{Flags: htmlFlags})
-
-	return string(markdown.Render(doc, renderer))
 }

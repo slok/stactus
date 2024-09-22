@@ -253,7 +253,7 @@ func TestCreateUI(t *testing.T) {
 						Timeline: []model.IncidentReportEvent{
 							{TS: t0.Add(5 * time.Minute), Kind: model.IncidentUpdateKindResolved, Description: "Some detail 13"},
 							{TS: t0.Add(3 * time.Minute), Kind: model.IncidentUpdateKindUpdate, Description: "Some detail 12"},
-							{TS: t0.Add(2 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some detail 13"},
+							{TS: t0.Add(2 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some **detail** 13"},
 						},
 					},
 
@@ -264,7 +264,7 @@ func TestCreateUI(t *testing.T) {
 						Start:     t0,
 						Impact:    model.IncidentImpactMinor,
 						Timeline: []model.IncidentReportEvent{
-							{TS: t0.Add(15 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some detail 23"},
+							{TS: t0.Add(15 * time.Minute), Kind: model.IncidentUpdateKindInvestigating, Description: "Some ![detail](https://slok.dev/something.png) 23"},
 						},
 					},
 				},
@@ -286,7 +286,7 @@ func TestCreateUI(t *testing.T) {
 					`<h2> Timeline </h2>`,
 					`<h3> Resolved - Jun 23, 01:07 </h3> <p> <p>Some detail 13</p> </p>`,
 					`<h3> Update - Jun 23, 01:05 </h3> <p> <p>Some detail 12</p> </p>`,
-					`<h3> Investigating - Jun 23, 01:04 </h3> <p> <p>Some detail 13</p> </p>`,
+					`<h3> Investigating - Jun 23, 01:04 </h3> <p> <p>Some <strong>detail</strong> 13</p> </p>`,
 				},
 
 				"./ir/0987654321.html": {
@@ -302,7 +302,7 @@ func TestCreateUI(t *testing.T) {
 
 					// Timeline.
 					`<h2> Timeline </h2>`,
-					`<h3> Investigating - Jun 23, 01:17 </h3> <p> <p>Some detail 23</p> </p> `,
+					`<h3> Investigating - Jun 23, 01:17 </h3> <p> <p>Some <img src="https://slok.dev/something.png" alt="detail"> 23</p> </p> `,
 				},
 			},
 		},
