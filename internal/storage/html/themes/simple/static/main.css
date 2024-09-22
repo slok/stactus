@@ -203,3 +203,9 @@ mark.unresolved {
     background-color: #DC3545;
     color: #FFF;
 }
+
+ul.no-bullets li{
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}

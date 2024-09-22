@@ -35,3 +35,9 @@ type PromMetricsCreator interface {
 }
 
 //go:generate mockery --case underscore --output storagemock --outpkg storagemock --name PromMetricsCreator
+
+type FeedCreator interface {
+	CreateHistoryFeed(ctx context.Context, ui model.UI) error
+}
+
+//go:generate mockery --case underscore --output storagemock --outpkg storagemock --name FeedCreator

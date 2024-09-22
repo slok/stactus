@@ -16,5 +16,7 @@
 
     <link rel="stylesheet" href="{{ .URLPrefix }}/static/main.css" />
     <script src="{{ .URLPrefix }}/static/main.js"></script>
+
+    <link rel=alternate title="Incident history" type=application/atom+xml href="{{.URLPrefix}}/{{.AtomHistoryFeedPath}}">
 </head>
 {{end}}

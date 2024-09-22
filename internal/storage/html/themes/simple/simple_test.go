@@ -64,9 +64,10 @@ func TestCreateUI(t *testing.T) {
 			},
 			expectHTML: map[string][]string{
 				"./index.html": {
-					` <dialog :open="subs_modal_open">`,
+					`<dialog :open="subs_modal_open">`,
 					`Subscribe to updates!`,
 					`<a href="https://monkeyisland.slok.dev/metrics">Prometheus metrics</a>`,
+					`<a href="https://monkeyisland.slok.dev/history-feed.atom">Atom feed</a>`,
 				},
 			},
 		},
