@@ -26,7 +26,11 @@ type ThemeRenderer struct {
 func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error) {
 	// Discover all template directories to parse.
 	templatePaths := []string{}
-	err := fs.WalkDir(templatesFS, ".", func(path string, d fs.DirEntry, err error) error {
+	tplfs, err := fs.Sub(templatesFS, "templates")
+	if err != nil {
+		return nil, fmt.Errorf("'templates' directory missing: %w", err)
+	}
+	err = fs.WalkDir(tplfs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -37,7 +41,7 @@ func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error)
 			return nil
 		}
 
-		templatePaths = append(templatePaths, path)
+		templatePaths = append(templatePaths, filepath.Join("templates", path))
 
 		return nil
 	})
@@ -55,7 +59,7 @@ func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error)
 	staticFiles := map[string]string{}
 	stfs, err := fs.Sub(staticFS, "static")
 	if err != nil {
-		return nil, fmt.Errorf("could not get subFS on static files: %w", err)
+		return nil, fmt.Errorf("'static' directory missing: %w", err)
 	}
 	err = fs.WalkDir(stfs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -77,7 +81,7 @@ func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error)
 			return err
 		}
 
-		staticFiles[StaticURLPrefix+"/"+path] = string(data)
+		staticFiles[filepath.Join(StaticURLPrefix, path)] = string(data)
 
 		return nil
 	})

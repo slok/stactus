@@ -16,7 +16,6 @@ import (
 	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/storage"
 	"github.com/slok/stactus/internal/storage/feed"
-	htmlbase "github.com/slok/stactus/internal/storage/html/themes/base"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
 	"github.com/slok/stactus/internal/storage/prometheus"
@@ -56,7 +55,6 @@ var (
 	}
 
 	showcaseThemes = []string{
-		themeBase,
 		themeSimple,
 	}
 )
@@ -173,15 +171,6 @@ func (c *ShowcaseGenerateCommand) Run(ctx context.Context) (err error) {
 
 						var uiCreator storage.UICreator
 						switch theme {
-						case themeBase:
-							uiCreator, err = htmlbase.NewGenerator(htmlbase.GeneratorConfig{
-								OutPath: outPath,
-								Logger:  logger,
-							})
-							if err != nil {
-								return fmt.Errorf("could not create HTML generator: %w", err)
-							}
-
 						case themeSimple:
 							uiCreator, err = htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
 								OutPath: outPath,
