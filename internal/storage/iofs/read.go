@@ -92,9 +92,21 @@ func (r ReadRepository) loadSystemsAndSettings(data string) ([]model.System, *mo
 		return nil, nil, fmt.Errorf("at least 1 system is required")
 	}
 
+	// Select theme.
+	theme := model.Theme{Simple: &model.ThemeSimple{}} // Default theme.
+	if spec.Theme != nil {
+		switch {
+		case spec.Theme.Simple != nil:
+			theme.Simple = &model.ThemeSimple{}
+			theme.OverrideTPLPath = spec.Theme.Simple.ThemePath
+
+		}
+	}
+
 	settings := &model.StatusPageSettings{
-		Name: spec.Name,
-		URL:  spec.URL,
+		Name:  spec.Name,
+		URL:   spec.URL,
+		Theme: theme,
 	}
 
 	err = settings.Validate()

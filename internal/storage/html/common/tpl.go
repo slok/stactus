@@ -6,15 +6,18 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/slok/stactus/internal/conventions"
 )
 
 const (
-	StaticURLPrefix = "static"
+	ThemeDirStatic    = "static"
+	ThemeDirTemplates = "templates"
 )
 
 // ThemeRenderer knows how to render different themes.
@@ -23,12 +26,31 @@ type ThemeRenderer struct {
 	staticFiles map[string]string
 }
 
+// NewOSFSThemeRenderer returns a theme rendered based on real OS FS. The directory
+// must have `static“ and `templates“ directories.
+func NewOSFSThemeRenderer(dir string) (*ThemeRenderer, error) {
+	d := os.DirFS(dir)
+	return NewThemeRenderer(d, d)
+}
+
+// NewThemeRenderer returns a theme rendered based on FS abstractions (OS, memory, S3...).
+// Each of the directories must have `static“ and `templates“ directories accordingly.
 func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error) {
+	// Check we have the required directories.
+	_, err := fs.Stat(templatesFS, ThemeDirTemplates)
+	if err != nil {
+		return nil, fmt.Errorf("the required %q directory is missing: %w", ThemeDirTemplates, err)
+	}
+	_, err = fs.Stat(staticFS, ThemeDirStatic)
+	if err != nil {
+		return nil, fmt.Errorf("the required %q directory is missing: %w", ThemeDirStatic, err)
+	}
+
 	// Discover all template directories to parse.
 	templatePaths := []string{}
-	tplfs, err := fs.Sub(templatesFS, "templates")
+	tplfs, err := fs.Sub(templatesFS, ThemeDirTemplates)
 	if err != nil {
-		return nil, fmt.Errorf("'templates' directory missing: %w", err)
+		return nil, fmt.Errorf("could not get %q sub dir: %w", ThemeDirTemplates, err)
 	}
 	err = fs.WalkDir(tplfs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -41,7 +63,7 @@ func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error)
 			return nil
 		}
 
-		templatePaths = append(templatePaths, filepath.Join("templates", path))
+		templatePaths = append(templatePaths, filepath.Join(ThemeDirTemplates, path))
 
 		return nil
 	})
@@ -57,9 +79,9 @@ func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error)
 
 	// Discover all static files.
 	staticFiles := map[string]string{}
-	stfs, err := fs.Sub(staticFS, "static")
+	stfs, err := fs.Sub(staticFS, ThemeDirStatic)
 	if err != nil {
-		return nil, fmt.Errorf("'static' directory missing: %w", err)
+		return nil, fmt.Errorf("could not get %q sub dir: %w", ThemeDirStatic, err)
 	}
 	err = fs.WalkDir(stfs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -81,7 +103,7 @@ func NewThemeRenderer(staticFS fs.FS, templatesFS fs.FS) (*ThemeRenderer, error)
 			return err
 		}
 
-		staticFiles[filepath.Join(StaticURLPrefix, path)] = string(data)
+		staticFiles[filepath.Join(conventions.StaticFilesURLPrefix, path)] = string(data)
 
 		return nil
 	})

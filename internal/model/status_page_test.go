@@ -11,6 +11,9 @@ func getBaseSettings() model.StatusPageSettings {
 	return model.StatusPageSettings{
 		Name: "Test 1",
 		URL:  "https://something.io",
+		Theme: model.Theme{
+			Simple: &model.ThemeSimple{},
+		},
 	}
 }
 
@@ -29,6 +32,15 @@ func TestStatusPageSettingsValidate(t *testing.T) {
 			system: func() model.StatusPageSettings {
 				s := getBaseSettings()
 				s.Name = ""
+				return s
+			},
+			expErr: true,
+		},
+
+		"A missing theme should fail.": {
+			system: func() model.StatusPageSettings {
+				s := getBaseSettings()
+				s.Theme = model.Theme{}
 				return s
 			},
 			expErr: true,

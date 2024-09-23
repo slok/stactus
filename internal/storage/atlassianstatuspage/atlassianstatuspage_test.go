@@ -29,7 +29,7 @@ func TestNewJSONStatusPageRepository(t *testing.T) {
 		"Components, settings and incidents should be loaded correctly.": {
 			componentsJSON: bigTestComponentsJSON,
 			incidentsJSON:  bigTestIncidentsJSON,
-			expSettings:    model.StatusPageSettings{Name: "GitHub", URL: "https://www.githubstatus.com"},
+			expSettings:    model.StatusPageSettings{Name: "GitHub", URL: "https://www.githubstatus.com", Theme: model.Theme{Simple: &model.ThemeSimple{}}},
 			expSystems: []model.System{
 				{ID: "8l4ygp009s5s", Name: "Git Operations", Description: "Performance of git clones, pulls, pushes, and associated operations"},
 				{ID: "4230lsnqdsld", Name: "Webhooks", Description: "Real time HTTP callbacks of user-generated and system events"},
