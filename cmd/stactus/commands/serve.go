@@ -18,8 +18,11 @@ import (
 	appgenerate "github.com/slok/stactus/internal/app/generate"
 	"github.com/slok/stactus/internal/conventions"
 	"github.com/slok/stactus/internal/log"
+	"github.com/slok/stactus/internal/storage"
 	"github.com/slok/stactus/internal/storage/feed"
+	htmlcommon "github.com/slok/stactus/internal/storage/html/common"
 	htmlsimple "github.com/slok/stactus/internal/storage/html/themes/simple"
+	themesimple "github.com/slok/stactus/internal/storage/html/themes/simple"
 	"github.com/slok/stactus/internal/storage/iofs"
 	"github.com/slok/stactus/internal/storage/prometheus"
 )
@@ -94,16 +97,37 @@ func (c *ServeCommand) Run(ctx context.Context) (err error) {
 			return fmt.Errorf("could not load data: %w", err)
 		}
 
+		// Override templates if required.
+		settings, err := roRepo.GetStatusPageSettings(ctx)
+		if err != nil {
+			return fmt.Errorf("could not retrieve page status settings: %w", err)
+		}
+		var themeRenderer *htmlcommon.ThemeRenderer
+		if settings.Theme.OverrideTPLPath != "" {
+			themeRenderer, err = htmlcommon.NewOSFSThemeRenderer(settings.Theme.OverrideTPLPath)
+			if err != nil {
+				return fmt.Errorf("could not load custom templates theme: %w", err)
+			}
+		}
+
 		memFS := fstest.MapFS{}
 		memFileManager := &memFSFileManager{fs: memFS}
 
-		repoUICreator, err := htmlsimple.NewGenerator(htmlsimple.GeneratorConfig{
-			FileManager: memFileManager,
-			OutPath:     "./",
-			Logger:      logger,
-		})
-		if err != nil {
-			return fmt.Errorf("could not create html generator: %w", err)
+		// Create the UI renderer.
+		var repoUICreator storage.UICreator
+		switch {
+		case settings.Theme.Simple != nil:
+			repoUICreator, err = themesimple.NewGenerator(htmlsimple.GeneratorConfig{
+				ThemeRenderer: themeRenderer,
+				FileManager:   memFileManager,
+				OutPath:       "./",
+				Logger:        logger,
+			})
+			if err != nil {
+				return fmt.Errorf("could not create html generator: %w", err)
+			}
+		default:
+			return fmt.Errorf("unknown theme")
 		}
 
 		repoPromCreator, err := prometheus.NewFSRepository(prometheus.RepositoryConfig{

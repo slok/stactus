@@ -171,7 +171,11 @@ func NewJSONStatusPageRepository(componentsRawJSON string, incidentsRawJSON stri
 	// Sort by incident by latest created.
 	sort.SliceStable(irs, func(i, j int) bool { return irs[i].Start.After(irs[j].Start) })
 
-	settings := model.StatusPageSettings{Name: jsonComponents.Page.Name, URL: jsonComponents.Page.URL}
+	settings := model.StatusPageSettings{
+		Name:  jsonComponents.Page.Name,
+		URL:   jsonComponents.Page.URL,
+		Theme: model.Theme{Simple: &model.ThemeSimple{}},
+	}
 	err = settings.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("invalid settings: %w", err)

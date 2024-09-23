@@ -9,6 +9,9 @@ import (
 // PrometheusMetricsPathName is the path where metrics will be served.
 const PrometheusMetricsPathName = "metrics"
 
+// StaticFilesURLPrefix is the URL path where the static files will be served.
+const StaticFilesURLPrefix = "static"
+
 // IRHistoryAtomFeedPathName is the path where history Atom feed will be created.
 const IRHistoryAtomFeedPathName = "history-feed.atom"
 

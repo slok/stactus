@@ -32,7 +32,11 @@ systems:
 		{ID: "system2", Name: "System 2", Description: "This is a description of system2"},
 	}
 
-	testSettings = model.StatusPageSettings{Name: "SomethingIO", URL: "https://something.test.test.somethingdsadsadsad.com"}
+	testSettings = model.StatusPageSettings{
+		Name:  "SomethingIO",
+		URL:   "https://something.test.test.somethingdsadsadsad.com",
+		Theme: model.Theme{Simple: &model.ThemeSimple{}},
+	}
 )
 
 func getIRForTSFormats(ts1, ts2 string) []byte {
@@ -100,6 +104,35 @@ func TestReadRepository(t *testing.T) {
 			expSettings: testSettings,
 			expSystems:  testSystems,
 			expIRs:      []model.IncidentReport{},
+		},
+
+		"Customizing the simple theme should allow settings a custom template directory.": {
+			fs: func() fs.FS { return fstest.MapFS{} },
+			stactusFile: `
+version: stactus/v1
+name: SomethingIO
+url: https://something.test.test.somethingdsadsadsad.com
+theme:
+  simple:
+    themePath: /tmp/custom-templates
+systems:
+  - id: system1
+    name: System 1
+    description: This is a description of system1
+  - id: system2
+    name: System 2
+    description: This is a description of system2
+`,
+			expSettings: model.StatusPageSettings{
+				Name: "SomethingIO",
+				URL:  "https://something.test.test.somethingdsadsadsad.com",
+				Theme: model.Theme{
+					OverrideTPLPath: "/tmp/custom-templates",
+					Simple:          &model.ThemeSimple{},
+				},
+			},
+			expSystems: testSystems,
+			expIRs:     []model.IncidentReport{},
 		},
 
 		"Incident reports should be loaded correctly.": {
