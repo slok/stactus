@@ -10,11 +10,7 @@ jobs:
     steps:
       - run: echo "machine github.com login ${CW_GO_DEPS_LOGIN} password ${CW_GO_DEPS_TOKEN}" > ~/.netrc
       - uses: actions/checkout@v4
-      - run: |
-          # We need this go flag because it started to error after golangci-lint is using Go 1.21.
-          # TODO(slok): Remove it on next (>1.54.1) golangci-lint upgrade to check if this problem has gone.
-          export GOFLAGS="-buildvcs=false"
-          ./scripts/check/check.sh
+      - run: ./scripts/check/check.sh
   unit-test:
     name: Unit test
     runs-on: ubuntu-latest
