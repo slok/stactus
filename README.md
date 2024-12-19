@@ -287,11 +287,18 @@ for now we only support customizing templates (**not themes**). Let's check the 
 
 #### Variable and templates
 
- Use the [base templates](./internal/storage/html/themes/simple/) to understand the templates and the information that the templates will have available. The required template names are these:
+ Use the [base templates](./internal/storage/html/themes/simple/) to understand the templates and the information that the templates will have available.
+
+ The required template `block` names are these:
 
 - Index page: `page_index`
 - Incidents list page (History):  `page_history`
 - Incident details: `page_ir`
+
+The theme template customization directory requires 2 subdirectories:
+
+- `templates/`: Where the templates will be loaded.
+- `static/`: Where the static files will be loaded (css, images, js...).
 
 ## Migrate from Atlassian status page
 
