@@ -54,7 +54,7 @@ Moreover, using the simplest possible solution makes it portable (out from your 
 
 ## Getting started
 
-You can check the Stactus [showcase](https://github.com/slok/stactus-showcase), or download yourself and run it:
+You can check the Stactus [showcase][stactus-showcase], or download yourself and run it:
 
 ```bash
 git clone https://github.com/slok/stactus-showcase /tmp/stactus-showcase
@@ -193,11 +193,113 @@ timeline:
 
 ## Subscriptions
 
-- Atom:
-- Prometheus metrics:
+Although it's an static page, your users can subscribe to updates in multiple ways:
+
+### Atom
+
+You can check the RSS in `{STATUS_PAGE_URL}/history-feed.atom`
+
+[Real example of the showcase](https://slok.github.io/stactus-showcase/simple/github/history-feed.atom).
+
+### Slack
+
+You can use Slack with Atom RSS by using this Slack command:
+
+```plain
+/feed subscribe {STATUS_PAGE_URL}/history-feed.atom
+```
+
+### Prometheus metrics
+
+Stactus generates multiple Prometheus metrics where users can discover and ingest so they can trigger alerts or notifications. Use this URL `{STATUS_PAGE_URL}/metrics`.
+
+The provided metrics are:
+
+- The general status.
+- The specific status for each of the systems (Tells if there is an incident ongoing and the impact).
+- The MTTR.
+
+Real example of the showcase:
+
+```bash
+$ curl -s https://slok.github.io/stactus-showcase/simple/github/metrics
+
+# HELP stactus_all_systems_status Tells if all systems are operational or not.
+# TYPE stactus_all_systems_status gauge
+stactus_all_systems_status{status_ok="true",status_page="GitHub"} 1
+# HELP stactus_incident_mttr_seconds The MTTR based on all the incident history.
+# TYPE stactus_incident_mttr_seconds gauge
+stactus_incident_mttr_seconds{status_page="GitHub"} 6196.028571428
+# HELP stactus_system_status Tells Systems are operational or not.
+# TYPE stactus_system_status gauge
+stactus_system_status{id="0l2p9nhqnxpd",impact="none",name="Visit www.githubstatus.com for more information",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="4230lsnqdsld",impact="none",name="Webhooks",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="8l4ygp009s5s",impact="none",name="Git Operations",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="br0l2tvcx85d",impact="none",name="Actions",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="brv1bkgrwx7q",impact="none",name="API Requests",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="h2ftsgbw7kmk",impact="none",name="Codespaces",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="hhtssxt0f5v2",impact="none",name="Pull Requests",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="kr09ddfgbfsf",impact="none",name="Issues",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="pjmpxvq2cmr2",impact="none",name="Copilot",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="st3j38cctv9l",impact="none",name="Packages",status_ok="true",status_page="GitHub"} 1
+stactus_system_status{id="vg70hn9s2tyj",impact="none",name="Pages",status_ok="true",status_page="GitHub"} 1
+```
+
+You can ingest these public metrics in your prometheus and alert whent he changes status.
+
+Example of Prometheus ingestion configuration to the showcase:
+
+```yaml
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: test
+    metrics_path: /stactus-showcase/simple/github/metrics
+    scheme: https
+    static_configs:
+      - targets: ["slok.github.io"]
+        labels:
+          example: 'test'
+```
 
 ## Themes and customization
 
+There are two concepts for customization:
+
+- Theme: The information the templates will receive and the templates that are going to be rendered with this information.
+- Template: A [go HTML template](https://pkg.go.dev/html/template) (It supports [sprig extensions](https://masterminds.github.io/sprig/)) that the theme will render.
+
+This means that different themes can have different kind of information passed to the templates and different template rendering.
+
+for now we only support customizing templates (**not themes**). Let's check the available themes:
+
 ### Simple
 
+#### Features
+
+- Default theme
+- Templates can be customized.
+- Independent incident detail page.
+- Pagination for incident history.
+- Ongoing incidents on index.
+
+#### Variable and templates
+
+ Use the [base templates](./internal/storage/html/themes/simple/) to understand the templates and the information that the templates will have available. The required template names are these:
+
+- Index page: `page_index`
+- Incidents list page (History):  `page_history`
+- Incident details: `page_ir`
+
 ## Migrate from Atlassian status page
+
+Stactus has support to migrate Atlassian status page (through the exposed API) into Stactus YAML files, the [Stactus showcase][stactus-showcase] is a migration of these. Example:
+
+```bash
+stactus migrate status-page --status-page-url https://www.githubstatus.com/ -o /tmp/stactus-gh
+stactus serve -i  /tmp/stactus-gh/stactus.yaml
+```
+
+[stactus-showcase]: https://github.com/slok/stactus-showcase
