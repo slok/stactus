@@ -48,11 +48,11 @@ There is a showcase where you can check live examples that update every hour and
 
 ## Why
 
-The purpose of a static page is to be a central place where clients can check the current status of a service. This means that a static page is not a place to know the availability, latency or service metrics.
+The purpose of a status page is to be a central place where clients can check the current status of a service. This means that a status page is not a place to know the metrics of the availability or latency metrics.
 
 **It's all about comms.**
 
-A status page is a communication point, a simple file with text is enough, you don't need an over complicated backend that checks latency and makes pings every N minutes.
+A status page is a communication point, a simple file with text would be enough, you don't need an over complicated backend that checks latency, makes pings every N minutes or exposes internal services metrics.
 
 **Low level metrics are for the company, communication and updates are for the clients.**
 
