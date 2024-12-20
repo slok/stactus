@@ -80,14 +80,12 @@ stactus serve -i /tmp/stactus-showcase/showcases/github/stactus.yaml
 Now we are ready to generate the static page resources, this content is ready to be served with a simple nginx, upload to github pages or any other method used to serve static content...
 
 ```bash
-stactus generate -i /tmp/stactus-showcase/showcases/github/stactus.yaml -o /tmp/gen`
+stactus generate -i /tmp/stactus-showcase/showcases/github/stactus.yaml -o /tmp/gen
 ```
 
 ### Deployment in github pages
 
-In the showcase repository, you can see how to upload to github-pages:
-
-- [Example with Github actions deploying to status pages](https://github.com/slok/stactus-showcase/blob/main/.github/workflows/ci.yaml).
+In the showcase repository, you can see how to [generate and upload to github-pages](https://github.com/slok/stactus-showcase/blob/main/.github/workflows/ci.yaml).
 
 ### Deployment with nginx
 
