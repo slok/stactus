@@ -40,6 +40,12 @@ And will render this:
 - Able to subscribe to updates with Atom feed (and/or Prometheus metrics).
 - Atlassian status page migrator.
 
+## Live examples
+
+There is a showcase where you can check live examples that update every hour and are ported from real status pages:
+
+[Check the live showcase](https://slok.github.io/stactus-showcase/).
+
 ## Why
 
 The purpose of a static page is to be a central place where clients can check the current status of a service. This means that a static page is not a place to know the availability, latency or service metrics.
@@ -54,16 +60,52 @@ Moreover, using the simplest possible solution makes it portable (out from your 
 
 ## Getting started
 
-You can check the Stactus [showcase][stactus-showcase], or download yourself and run it:
+First download Stactus in any of the forms:
+
+- Docker: `ghcr.io/slok/stactus`.
+- Binary:  [Github releases page](https://github.com/slok/stactus/releases).
+
+For this first example, we will use stactus [showcase][stactus-showcase], as it has working stactus content.
 
 ```bash
 git clone https://github.com/slok/stactus-showcase /tmp/stactus-showcase
+```
+
+First, we need to see ourselves what stactus will render, to do that, stactus comes with a simple development server that can be used to serve generate on the fly and serve the rendered static page in [localhost](http://127.0.0.1:8080).
+
+```bash
 stactus serve -i /tmp/stactus-showcase/showcases/github/stactus.yaml
 ```
 
-### Example
+Now we are ready to generate the static page resources, this content is ready to be served with a simple nginx, upload to github pages or any other method used to serve static content...
 
-- [Example with Github actions deploying to status pages](https://github.com/slok/stactus-showcase).
+```bash
+stactus generate -i /tmp/stactus-showcase/showcases/github/stactus.yaml -o /tmp/gen`
+```
+
+### Deployment in github pages
+
+In the showcase repository, you can see how to upload to github-pages:
+
+- [Example with Github actions deploying to status pages](https://github.com/slok/stactus-showcase/blob/main/.github/workflows/ci.yaml).
+
+### Deployment with nginx
+
+This is an nginx config example (We have the stactus generated content in `/tmp/gen`):
+
+```text
+server {
+    location /static {
+        root /tmp/gen;
+    }
+
+    location / {
+        root /tmp/gen;
+        default_type "text/html";
+        try_files  $uri $uri.html $uri/index.html index.html;
+    }
+}
+```
 
 ## Concepts
 
