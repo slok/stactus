@@ -35,6 +35,9 @@ jobs:
       VERSION: ${GITHUB_SHA}
     name: Release images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: [check, unit-test]
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +56,9 @@ jobs:
       PROD_IMAGE_NAME: ghcr.io/${GITHUB_REPOSITORY}
     name: Tagged release images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: [check, unit-test]
     steps:
       - run: echo "VERSION=${GITHUB_REF#refs/*/}" >> ${GITHUB_ENV} # Sets VERSION env var.
