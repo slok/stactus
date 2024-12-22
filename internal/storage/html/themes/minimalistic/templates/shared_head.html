@@ -1,0 +1,12 @@
+{{define "shared_head"}}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ .BrandTitle }} status</title>
+
+    <link rel="stylesheet" href="{{ .URLPrefix }}/static/main.css" />
+    <script src="{{ .URLPrefix }}/static/main.js"></script>
+
+    <link rel=alternate title="Incident history" type=application/atom+xml href="{{.URLPrefix}}/{{.AtomHistoryFeedPath}}">
+</head>
+{{end}}
