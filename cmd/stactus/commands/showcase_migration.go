@@ -70,7 +70,7 @@ func (c *ShowcaseMigrateCommand) Run(ctx context.Context) (err error) {
 					// Setup repositories.
 					repo, err := atlassianstatuspage.NewStatusPageRepository(client.URL)
 					if err != nil {
-						return fmt.Errorf("could not create repository: %w", err)
+						return fmt.Errorf("could not create repository for %q: %w", client.Name, err)
 					}
 
 					outPath := path.Join(c.outPath, client.Path)

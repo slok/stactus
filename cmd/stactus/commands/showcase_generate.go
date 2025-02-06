@@ -41,7 +41,6 @@ var (
 		{Name: "FlyIO", Path: "flyio", URL: "https://status.flyio.net/"},
 		{Name: "Github", Path: "github", URL: "https://www.githubstatus.com/"},
 		{Name: "Grafana", Path: "grafana", URL: "https://status.grafana.com/"},
-		{Name: "Hashicorp", Path: "hashicorp", URL: "https://status.hashicorp.com/"},
 		{Name: "MIT", Path: "mit", URL: "https://atlas-status.mit.edu/"},
 		{Name: "MongoDB", Path: "mongodb", URL: "https://status.mongodb.com/"},
 		{Name: "New Relic", Path: "newrelic", URL: "https://status.newrelic.com/"},
