@@ -33,6 +33,7 @@ var (
 		{Name: "1Password", Path: "onepassword", URL: "https://status.1password.com/"},
 		{Name: "Atlassian Statuspage", Path: "atlassianstatuspage", URL: "https://metastatuspage.com/"},
 		{Name: "Bambulab", Path: "bambulab", URL: "https://status.bambulab.com/"},
+		{Name: "Claude", Path: "claude", URL: "https://status.claude.com/"},
 		{Name: "Cloudflare", Path: "cloudflare", URL: "https://www.cloudflarestatus.com/"},
 		{Name: "Datadog", Path: "datadog", URL: "https://status.datadoghq.com/"},
 		{Name: "Digital Ocean", Path: "digitalocean", URL: "https://status.digitalocean.com/"},
@@ -41,16 +42,17 @@ var (
 		{Name: "FlyIO", Path: "flyio", URL: "https://status.flyio.net/"},
 		{Name: "Github", Path: "github", URL: "https://www.githubstatus.com/"},
 		{Name: "Grafana", Path: "grafana", URL: "https://status.grafana.com/"},
+		{Name: "Laravel", Path: "laravel", URL: "https://status.laravel.cloud/"},
 		{Name: "MIT", Path: "mit", URL: "https://atlas-status.mit.edu/"},
 		{Name: "MongoDB", Path: "mongodb", URL: "https://status.mongodb.com/"},
 		{Name: "New Relic", Path: "newrelic", URL: "https://status.newrelic.com/"},
 		{Name: "Reddit", Path: "reddit", URL: "https://www.redditstatus.com/"},
-		{Name: "RedisLabs", Path: "redislabs", URL: "https://status.redis.io/"},
 		{Name: "Twilio", Path: "twilio", URL: "https://status.twilio.com/"},
 		{Name: "Twitch", Path: "twitch", URL: "https://status.twitch.com"},
 		{Name: "Uber", Path: "uber", URL: "https://flgtt5cfx545.statuspage.io/"},
 		{Name: "Ubiquiti", Path: "ubiquiti", URL: "https://status.ui.com/"},
 		{Name: "Zoom", Path: "zoom", URL: "https://status.zoom.us/"},
+		{Name: "Vercel", Path: "vercel", URL: "https://www.vercel-status.com/"},
 	}
 
 	showcaseThemes = []string{
