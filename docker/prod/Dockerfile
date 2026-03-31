@@ -1,7 +1,7 @@
 # Set also `ARCH` ARG here so we can use it on all the `FROM`s. 
 ARG ARCH
 
-FROM golang:1.23-alpine AS build-stage
+FROM golang:1.24-alpine AS build-stage
 
 RUN apk --no-cache add \
     g++ \
